@@ -20,6 +20,13 @@ SAVE_FILE = ROOT / 'hiraeth.json'
 TRAITS_FILE = ROOT.parent / 'traits.json'
 WIDTH, HEIGHT = 1000, 720
 MAX_PARTY = 4
+DOWNTIME_ACTIVITIES = ('health', 'magica', 'stamina', 'repair')
+DOWNTIME_LABELS = {
+    'health': 'Health',
+    'magica': 'Magica',
+    'stamina': 'Stamina',
+    'repair': 'Repair AP',
+}
 
 INK = (31, 43, 40)
 MUTED = (99, 113, 105)
@@ -152,6 +159,9 @@ class Hiraeth:
         self.quit_prompt = False
         self.message = ''
         self.buttons = []
+        self.attack_animations = []
+        self.animation_next_at = 0
+        self.log_scroll = 0
         self.load_save()
 
     @staticmethod
@@ -237,17 +247,7 @@ class Hiraeth:
 
     def wrapped(self, value, rect, color=MUTED, font=None, line_gap=5):
         font = font or self.body
-        lines = []
-        line = ''
-        for word in str(value).split():
-            candidate = f'{line} {word}'.strip()
-            if line and font.size(candidate)[0] > rect.width:
-                lines.append(line)
-                line = word
-            else:
-                line = candidate
-        if line:
-            lines.append(line)
+        lines = self.wrap_lines(value, rect.width, font)
         y = rect.y
         for line in lines:
             if y + font.get_linesize() > rect.bottom:
@@ -255,6 +255,28 @@ class Hiraeth:
             self.text(line, rect.x, y, color, font)
             y += font.get_linesize() + line_gap
         return y
+
+    @staticmethod
+    def wrap_lines(value, width, font):
+        lines = []
+        line = ''
+        for word in str(value).split():
+            candidate = f'{line} {word}'.strip()
+            if line and font.size(candidate)[0] > width:
+                lines.append(line)
+                line = word
+            else:
+                line = candidate
+        if line:
+            lines.append(line)
+        return lines
+
+    def journal_lines(self):
+        return [
+            line
+            for entry in self.game['log']
+            for line in self.wrap_lines(entry, 586, self.tiny)
+        ]
 
     def box(self, rect, color=WHITE, border=LINE, radius=4):
         pygame.draw.rect(self.screen, color, rect, border_radius=radius)
@@ -273,7 +295,7 @@ class Hiraeth:
         pygame.draw.rect(self.screen, color, rect, border_radius=3)
         pygame.draw.rect(self.screen, border, rect, width=1, border_radius=3)
         label_color = WHITE if primary and enabled else (INK if enabled else MUTED)
-        font = self.small if subtitle else self.body
+        font = self.tiny if rect.height <= 22 else self.small if subtitle else self.body
         rendered = font.render(label, True, label_color)
         label_y = 4 if subtitle else (rect.height - rendered.get_height()) // 2
         self.screen.blit(rendered, (rect.x + 12, rect.y + label_y))
@@ -815,8 +837,6 @@ class Hiraeth:
             self.box(rect, (246, 244, 232) if active else (226, 227, 215), GOLD if active else LINE)
             self.text(member['Name'], rect.x + 12, rect.y + 9, INK if living else MUTED, self.body)
             self.text(f"{member.get('Race', 'Traveler')}  ·  HP {max(0, member['health'])}/{member['max_health']}", rect.x + 12, rect.y + 32, GREEN if living else CORAL, self.tiny)
-            stats = member.get('Stats', {})
-            self.text('STR ' + str(stats.get('STR', 10)) + '   AGI ' + str(stats.get('AGI', 10)), rect.x + 12, rect.y + 52, MUTED, self.tiny)
             if targeting and targeting.get('target_type') == 'ally' and living:
                 self.buttons.append((rect, ('combat_target_party', index)))
             elif battle:
@@ -827,10 +847,35 @@ class Hiraeth:
                     self.buttons.append((rect, ('plan_member', index)))
             else:
                 self.buttons.append((rect, ('overview', index)))
+            next_rank = 'back' if member.get('rank') == 'front' else 'front'
+            rank_label = f"{member.get('rank', 'front').title()} → {next_rank.title()}"
+            rank_enabled = living and (
+                not battle
+                or (
+                    battle.get('phase') == 'planning'
+                    and battle.get('planning_actor') == index
+                    and str(index) not in battle.get('plans', {})
+                    and not battle.get('targeting')
+                )
+            )
+            self.button(
+                pygame.Rect(rect.x + 8, rect.y + 53, 99, 20),
+                rank_label, ('party_rank', index),
+                enabled=rank_enabled,
+            )
+            activity = member.get('downtime_activity', 'health')
+            self.button(
+                pygame.Rect(rect.x + 112, rect.y + 53, 95, 20),
+                f"Rest: {DOWNTIME_LABELS[activity]} >",
+                ('cycle_downtime', index),
+                enabled=living and not battle and self.game['mode'] not in ('won', 'lost'),
+            )
 
     def plan_description(self, plan, battle):
         if plan['kind'] == 'guard':
             return 'Guard locked'
+        if plan['kind'] == 'switch_rank':
+            return 'Switch rank'
         if plan['kind'] == 'attack':
             target = battle['enemies'][plan['target']]['name']
             return f'Attack: {target[:12]}'
@@ -883,6 +928,7 @@ class Hiraeth:
             self.draw_ending()
         if game['mode'] != 'event':
             self.draw_journal()
+        self.draw_combat_animations()
         if self.message:
             self.text(self.message, 292, 676, CORAL, self.tiny)
         self.draw_quit_prompt()
@@ -1039,7 +1085,7 @@ class Hiraeth:
             self.wrapped(self.texts['journey_intro'], pygame.Rect(292, 277, 590, 54), MUTED, self.body)
             self.button(
                 pygame.Rect(292, 352, 280, 52), 'Choose a destination',
-                'depart', primary=True, enabled=self.game['supply'] >= travel_cost,
+                'depart', primary=True,
             )
             return
         destination = self.game.get('travel_destination') or {}
@@ -1050,33 +1096,33 @@ class Hiraeth:
         )
         self.button(
             pygame.Rect(292, 352, 280, 52), self.texts['travel_button'], 'travel',
-            primary=True, enabled=self.game['supply'] >= travel_cost,
-            subtitle=f'{remaining} DAYS LEFT · COSTS {travel_cost} SUPPLY',
+            primary=True,
+            subtitle=(
+                f'{remaining} DAYS LEFT · COSTS {travel_cost} SUPPLY'
+                if self.game['supply'] >= travel_cost
+                else f'{remaining} DAYS LEFT · UNSUPPLIED (STAMINA, THEN HEALTH)'
+            ),
         )
-        recovery = self.game.get('camp_recovery', 'health')
-        needs_recovery = {
-            'health': lambda member: member['health'] < member['max_health'],
-            'magica': lambda member: member['magica_now'] < member['max_magica'],
-            'stamina': lambda member: member['stamina_now'] < member['max_stamina'],
-        }
-        can_rest = self.game['supply'] >= camp_cost and (
-            any(needs_recovery.get(recovery, needs_recovery['health'])(member) for member in self.game['party'])
-            or any(
-                member.get('armor_ap_now', 0) < member.get('armor_ap_max', 0)
-                for member in self.game['party']
+        can_rest = self.game['supply'] >= camp_cost and any(
+            self.can_take_downtime(member) for member in self.game['party']
+        )
+        self.button(
+            pygame.Rect(592, 352, 280, 52), self.texts['camp_button'],
+            'rest', enabled=can_rest,
+            subtitle=f'COSTS {camp_cost} SUPPLY · ACTIVITIES SET ON PARTY CARDS',
+        )
+        self.text('Downtime activities · choose each character on their party card', 292, 418, MUTED, self.tiny)
+        for index, member in enumerate(self.game['party']):
+            activity = DOWNTIME_LABELS[member.get('downtime_activity', 'health')]
+            self.text(
+                f"{member['Name']}: {activity}",
+                292, 439 + index * 25, INK if member['health'] > 0 else MUTED, self.small,
             )
-        )
-        recovery_labels = (('health', 'Recover Health'), ('magica', 'Recover Magica'), ('stamina', 'Recover Stamina'))
-        self.text('Choose one recovery during camp:', 292, 417, MUTED, self.tiny)
-        for index, (key, label) in enumerate(recovery_labels):
+        if self.game['supply'] == 0:
             self.button(
-                pygame.Rect(292 + index * 192, 435, 180, 34), label,
-                ('camp_recovery', key), primary=recovery == key,
+                pygame.Rect(292, 541, 280, 34), 'Forage for supplies',
+                'forage', primary=True, subtitle='TAKES A DAY · WISDOM CHECKS',
             )
-        heal_detail = f'HEAL {self.journey["camp_heal_per_member"]}' if recovery == 'health' else 'RECOVER BY DICE'
-        self.button(pygame.Rect(592, 352, 280, 52), self.texts['camp_button'], 'rest', enabled=can_rest, subtitle=f'COSTS {camp_cost} SUPPLY · {heal_detail}')
-        if self.game['supply'] < travel_cost and self.game['supply'] < camp_cost:
-            self.text(self.texts['supply_shortage'], 292, 479, CORAL, self.small)
 
     def draw_settlement_actions(self):
         game = self.game
@@ -1116,9 +1162,31 @@ class Hiraeth:
             upkeep = self.journey['town_upkeep_wealth_per_turn']
             self.button(
                 pygame.Rect(592, 426, 280, 48), 'Rest in town',
-                'town_rest', enabled=game['wealth'] >= upkeep,
+                'town_rest',
+                enabled=game['wealth'] >= upkeep and any(
+                    self.can_take_downtime(member) for member in game['party']
+                ),
                 subtitle=f'COSTS {upkeep} WEALTH UPKEEP',
             )
+            repairable = [
+                (index, member)
+                for index, member in enumerate(game['party'])
+                if (
+                    self.town_repair_limit(member) is not None
+                    and self.town_repair_limit(member) <= level
+                    and member.get('armor_ap_total', member['armor_ap_max']) > member['armor_ap_now']
+                )
+            ]
+            if repairable:
+                self.text('Professional armor repair · 1 Wealth each · AP restored up to town level', 292, 533, MUTED, self.tiny)
+                for position, (index, member) in enumerate(repairable):
+                    self.button(
+                        pygame.Rect(292 + position * 151, 552, 143, 38),
+                        f"Repair {member['Name'][:10]}",
+                        ('town_repair', index),
+                        enabled=game['wealth'] >= 1,
+                        subtitle=f"UP TO {level} AP · 1 WEALTH",
+                    )
         self.text(
             f"Supply exchange: 1 Wealth → {rate} Supply  ·  Wealth {game['wealth']}  ·  Supply {game['supply']}",
             292, 500, GREEN if can_resupply else CORAL, self.small,
@@ -1128,7 +1196,7 @@ class Hiraeth:
                 f"Your reputation ({game['reputation']:+d}) is too low for "
                 f"{'town trade' if not allowed else 'resupply here'}. "
                 "Waystations do not refuse resupply.",
-                pygame.Rect(292, 524, 590, 32), CORAL, self.tiny, 1,
+                pygame.Rect(292, 600, 590, 32), CORAL, self.tiny, 1,
             )
 
     def draw_ending(self):
@@ -1147,11 +1215,86 @@ class Hiraeth:
 
     def draw_journal(self):
         self.text(self.texts['journal_heading'], 292, 579, MUTED, self.tiny)
-        pygame.draw.line(self.screen, LINE, (292, 596), (902, 596), 1)
-        for index, entry in enumerate(self.game['log'][:3]):
-            y = 606 + index * 20
-            pygame.draw.rect(self.screen, GOLD, (292, y + 2, 2, 11))
-            self.wrapped(entry, pygame.Rect(303, y, 590, 18), MUTED, self.tiny, 0)
+        lines = self.journal_lines()
+        max_scroll = max(0, len(lines) - 5)
+        self.log_scroll = min(self.log_scroll, max_scroll)
+        start = self.log_scroll
+        end = min(len(lines), start + 5)
+        self.text(f'{start + 1 if lines else 0}–{end} / {len(lines)}', 782, 580, MUTED, self.tiny)
+        self.button(
+            pygame.Rect(852, 576, 22, 19), '↑', ('log_scroll', -1),
+            enabled=start > 0,
+        )
+        self.button(
+            pygame.Rect(879, 576, 22, 19), '↓', ('log_scroll', 1),
+            enabled=end < len(lines),
+        )
+        pygame.draw.rect(self.screen, (226, 227, 215), pygame.Rect(292, 598, 610, 76), border_radius=3)
+        pygame.draw.line(self.screen, LINE, (292, 598), (902, 598), 1)
+        for index, line in enumerate(lines[start:end]):
+            y = 602 + index * 14
+            pygame.draw.rect(self.screen, GOLD, (298, y + 2, 2, 9))
+            self.text(line, 307, y, MUTED, self.tiny)
+
+    def queue_combat_animation(self, source_type, source_index, target_type, target_index):
+        now = pygame.time.get_ticks()
+        start_at = max(now, self.animation_next_at)
+        self.animation_next_at = start_at + 320
+        self.attack_animations.append({
+            'source_type': source_type,
+            'source_index': source_index,
+            'target_type': target_type,
+            'target_index': target_index,
+            'start_at': start_at,
+            'end_at': start_at + 520,
+        })
+
+    def draw_combat_animations(self):
+        if self.game.get('mode') != 'combat':
+            self.attack_animations.clear()
+            return
+        now = pygame.time.get_ticks()
+        battle = self.game.get('battle') or {}
+        target_scroll = battle.get('target_scroll', 0)
+        visible_enemy_count = min(6, len(battle.get('enemies', [])) - target_scroll)
+        active = []
+        for animation in self.attack_animations:
+            if now >= animation['end_at']:
+                continue
+            active.append(animation)
+            if now < animation['start_at']:
+                continue
+            if animation['source_type'] == 'party':
+                source = (165, 208 + animation['source_index'] * 90)
+            else:
+                source_index = animation['source_index'] - target_scroll
+                if not 0 <= source_index < visible_enemy_count:
+                    continue
+                source = (
+                    389 + (source_index % 3) * 203,
+                    371 + (source_index // 3) * 43,
+                )
+            if animation['target_type'] == 'party':
+                target = (165, 208 + animation['target_index'] * 90)
+            else:
+                target_index = animation['target_index'] - target_scroll
+                if not 0 <= target_index < visible_enemy_count:
+                    continue
+                target = (
+                    389 + (target_index % 3) * 203,
+                    371 + (target_index // 3) * 43,
+                )
+            duration = animation['end_at'] - animation['start_at']
+            progress = min(1.0, (now - animation['start_at']) / duration)
+            pygame.draw.line(self.screen, GOLD, source, target, 3)
+            marker = (
+                round(source[0] + (target[0] - source[0]) * progress),
+                round(source[1] + (target[1] - source[1]) * progress),
+            )
+            pygame.draw.circle(self.screen, CORAL, marker, 7)
+            if progress >= 0.72:
+                pygame.draw.circle(self.screen, GOLD, target, 14, width=2)
+        self.attack_animations = active
 
     def generate_destination(self, current_type):
         next_type = 'waystation' if current_type == 'town' else 'town'
@@ -1279,6 +1422,12 @@ class Hiraeth:
     def normalize_member(member):
         member.setdefault('inventory', [])
         member.setdefault('known_spells', [])
+        member.setdefault('rank', 'front')
+        if member['rank'] not in ('front', 'back'):
+            member['rank'] = 'front'
+        member.setdefault('downtime_activity', 'health')
+        if member['downtime_activity'] not in DOWNTIME_ACTIVITIES:
+            member['downtime_activity'] = 'health'
         member.setdefault('equipment', {'weapon': None, 'armor': None, 'helmet': None, 'shield': None})
         equipment = member['equipment']
         for slot in ('weapon', 'armor', 'helmet', 'shield'):
@@ -1289,6 +1438,8 @@ class Hiraeth:
         member.setdefault('magica_now', member['max_magica'])
         member.setdefault('armor_ap_max', 0)
         member.setdefault('armor_ap_now', member['armor_ap_max'])
+        member.setdefault('armor_ap_total', member['armor_ap_max'])
+        member.setdefault('armor_ap_broken', 0)
         capacity = spell_capacity(member)
         member['max_spells'] = capacity
         member.setdefault('Derived', {})['Max Spells'] = member['max_spells']
@@ -1317,24 +1468,27 @@ class Hiraeth:
 
     def start_battle(self):
         battle = new_battle(self.config)
-        party_initiatives = []
-        for member in self.alive_party():
-            rolls = [random.randint(1, 20)]
-            if self.is_encumbered(member):
-                rolls.append(random.randint(1, 20))
-            party_initiatives.append(min(rolls) + modifier(member, 'AGI'))
-        party_initiative = max(party_initiatives)
-        enemy_initiative = max(
-            random.randint(1, 20) + int(enemy.get('agility', 0))
-            for enemy in battle['enemies']
-        )
-        battle['party_initiative'] = party_initiative
-        battle['enemy_initiative'] = enemy_initiative
+        ambush_roll = random.random() * 100
+        ambush_chance = self.journey['ambush_chance'] * 100
+        battle['ambush'] = ambush_roll < ambush_chance
         self.game['battle'] = battle
         self.game['mode'] = 'combat'
-        if enemy_initiative > party_initiative:
-            self.game['log'].insert(0, 'The creatures seize the initiative.')
+        self.game['log'].insert(
+            0,
+            f"Ambush check: {ambush_roll:.1f}% vs {ambush_chance:g}% "
+            f"({'ambush' if battle['ambush'] else 'no ambush'}).",
+        )
+        self.log_scroll = 0
+        if battle['ambush']:
+            self.game['log'].insert(0, 'The creatures strike before the party can act.')
             self.enemy_turn()
+        else:
+            battle['phase'] = 'planning'
+            battle['planning_actor'] = next(
+                (index for index, member in enumerate(self.game['party']) if member['health'] > 0),
+                None,
+            )
+            self.game['log'].insert(0, 'The party spots the creatures in time and acts first.')
 
     def save_new_character(self):
         creator = self.creator
@@ -1426,6 +1580,222 @@ class Hiraeth:
     def alive_party(self):
         return [member for member in self.game['party'] if member['health'] > 0]
 
+    @staticmethod
+    def trait_rank(member, name):
+        try:
+            return max(0, int(member.get('Traits', {}).get(name, 0) or 0))
+        except (TypeError, ValueError):
+            return 0
+
+    def weapon_training(self, member, weapon):
+        if weapon is None:
+            weapon_type = 'melee'
+            advanced = False
+            stat = 'STR'
+        else:
+            weapon_type = (
+                'melee'
+                if weapon['range'].lower() == 'close' or weapon['attack_stat'] == 'STR'
+                else 'ranged'
+            )
+            advanced = 'advanced' in weapon.get('traits', '').lower()
+            stat = 'STR' if weapon_type == 'melee' else 'AGI'
+        required_rank = (1 if weapon_type == 'melee' else 2) + (2 if advanced else 0)
+        rank = self.trait_rank(member, 'Martial Training')
+        return rank >= required_rank, stat, rank >= 5
+
+    def can_take_downtime(self, member):
+        if member['health'] <= 0:
+            return False
+        activity = member.get('downtime_activity', 'health')
+        if activity == 'health':
+            return member['health'] < member['max_health']
+        if activity == 'magica':
+            return member['magica_now'] < member['max_magica']
+        if activity == 'stamina':
+            return member['stamina_now'] < member['max_stamina']
+        return activity == 'repair' and member.get('armor_ap_now', 0) < member.get('armor_ap_max', 0)
+
+    def perform_downtime(self):
+        results = []
+        for member in self.game['party']:
+            if not self.can_take_downtime(member):
+                continue
+            activity = member.get('downtime_activity', 'health')
+            if activity == 'health':
+                faces, total = self.roll_dice_details('1d6')
+                amount = min(total, member['max_health'] - member['health'])
+                member['health'] += amount
+                results.append(
+                    f"{member['Name']} rolls {self.format_dice('1d6', faces)}; "
+                    f"recovers {amount} Health"
+                )
+            elif activity == 'magica':
+                faces, total = self.roll_dice_details('2d4')
+                amount = min(total, member['max_magica'] - member['magica_now'])
+                member['magica_now'] += amount
+                results.append(
+                    f"{member['Name']} rolls {self.format_dice('2d4', faces)}; "
+                    f"recovers {amount} Magica"
+                )
+            elif activity == 'stamina':
+                faces, total = self.roll_dice_details('2d6')
+                amount = min(total, member['max_stamina'] - member['stamina_now'])
+                member['stamina_now'] += amount
+                results.append(
+                    f"{member['Name']} rolls {self.format_dice('2d6', faces)}; "
+                    f"recovers {amount} Stamina"
+                )
+            else:
+                repaired, failed, checks = self.repair_armor(member)
+                results.extend(f"{member['Name']} armor: {check}" for check in checks)
+                results.append(
+                    f"{member['Name']} armor repair: {repaired} AP restored"
+                    + (f", {failed} permanently broken" if failed else '')
+                )
+        return results
+
+    def log_activities(self, summary, activities):
+        self.game['log'].insert(0, summary)
+        for activity in reversed(activities):
+            self.game['log'].insert(0, activity + '.')
+
+    def repair_armor(self, member):
+        armor = self.item_by_id('armor', member.get('equipment', {}).get('armor'))
+        if not armor:
+            armor = next(
+                (
+                    item for slot in ('helmet', 'shield')
+                    if (item := self.item_by_id('armor', member.get('equipment', {}).get(slot)))
+                ),
+                None,
+            )
+        base_ap = armor.get('ap', 0) if armor else 0
+        traits = armor.get('traits', '').lower() if armor else ''
+        inventory = set(member.get('inventory', [])) | set(self.game.get('party_inventory', []))
+        die = 6
+        if 'light' in traits and 'sewing_kit' in inventory:
+            die = 8
+        elif ('medium' in traits or 'heavy' in traits) and 'smith_tools' in inventory:
+            die = 8
+        bonus = (1 if 'simple construction' in traits else 0)
+        bonus += 5 if self.trait_rank(member, 'Master Crafter') > 0 else 0
+        damaged = max(0, member['armor_ap_max'] - member['armor_ap_now'])
+        repaired = failed = 0
+        checks = []
+        for _ in range(damaged):
+            face = random.randint(1, die)
+            total = face + bonus
+            success = total > base_ap
+            checks.append(
+                f"d{die} {face}"
+                + (f" + {bonus} = {total}" if bonus else '')
+                + f": {total} > AP {base_ap} ({'success' if success else 'failure'})"
+            )
+            if success:
+                member['armor_ap_now'] += 1
+                repaired += 1
+            else:
+                member['armor_ap_broken'] = member.get('armor_ap_broken', 0) + 1
+                member['armor_ap_max'] -= 1
+                failed += 1
+        return repaired, failed, checks
+
+    def apply_supply_shortage(self):
+        losses = []
+        for member in self.alive_party():
+            deduction = self.journey['starvation_per_day']
+            starting_stamina = max(0, member.get('stamina_now', 0))
+            stamina_loss = min(starting_stamina, deduction)
+            health_loss = deduction - stamina_loss
+            member['stamina_now'] = starting_stamina - stamina_loss
+            member['health'] = max(0, member['health'] - health_loss)
+            if stamina_loss:
+                losses.append(f"{member['Name']} loses {stamina_loss} Stamina")
+            if health_loss:
+                losses.append(f"{member['Name']} loses {health_loss} Health")
+        if losses:
+            self.game['log'].insert(0, 'Without supplies: ' + '; '.join(losses) + '.')
+        if not self.alive_party():
+            self.game['mode'] = 'lost'
+            self.game['battle'] = None
+            self.game['log'].insert(0, 'The party falls after running out of supplies.')
+
+    def town_repair_limit(self, member):
+        equipment = member.get('equipment', {})
+        equipped_armor = [
+            armor
+            for slot in ('armor', 'helmet', 'shield')
+            if (armor := self.item_by_id('armor', equipment.get(slot)))
+        ]
+        if not equipped_armor:
+            return None
+        return max(armor['ap'] for armor in equipped_armor)
+
+    def repair_armor_in_town(self, member_index):
+        if self.game.get('mode') != 'town' or not 0 <= member_index < len(self.game['party']):
+            return
+        member = self.game['party'][member_index]
+        town_level = self.game.get('location', {}).get('level', 1)
+        armor_limit = self.town_repair_limit(member)
+        damaged = max(0, member.get('armor_ap_total', member['armor_ap_max']) - member['armor_ap_now'])
+        if armor_limit is None or armor_limit > town_level or damaged == 0:
+            self.message = 'This town cannot repair that character’s armor.'
+            return
+        if self.game['wealth'] < 1:
+            self.message = 'Need 1 Wealth to repair armor in town.'
+            return
+        repaired = min(damaged, town_level)
+        broken_repaired = min(repaired, member.get('armor_ap_broken', 0))
+        member['armor_ap_broken'] = member.get('armor_ap_broken', 0) - broken_repaired
+        member['armor_ap_max'] = min(
+            member.get('armor_ap_total', member['armor_ap_max']),
+            member['armor_ap_max'] + broken_repaired,
+        )
+        member['armor_ap_now'] = min(
+            member['armor_ap_max'],
+            member['armor_ap_now'] + repaired,
+        )
+        self.game['wealth'] -= 1
+        self.message = f"Spent 1 Wealth to repair {repaired} AP for {member['Name']}."
+        self.game['log'].insert(0, self.message)
+        self.save()
+
+    def forage_supplies(self):
+        supplies = 0
+        checks = []
+        for member in self.alive_party():
+            if self.trait_rank(member, 'Survivalist') > 0:
+                supplies += 1
+                checks.append(f"{member['Name']} succeeds automatically (Survivalist)")
+                continue
+            rolls = [random.randint(1, 20)]
+            has_fishing_kit = 'fishing_kit' in member.get('inventory', [])
+            if has_fishing_kit:
+                rolls.append(random.randint(1, 20))
+            selected = max(rolls)
+            wisdom = modifier(member, 'WIS')
+            total = selected + wisdom
+            success = total >= 11
+            check = (
+                f"{member['Name']} foraging: d20 {rolls}"
+                + (' (advantage)' if has_fishing_kit else '')
+                + f" + WIS {wisdom} = {total} vs DC 11 ({'success' if success else 'failure'})"
+            )
+            checks.append(check)
+            if success:
+                supplies += 1
+        self.game['day'] += 1
+        self.game['supply'] += supplies
+        self.game['log'].insert(
+            0, f"Foraging yielded {supplies} Supply."
+        )
+        for check in reversed(checks):
+            self.game['log'].insert(0, check + '.')
+        if not supplies:
+            self.apply_supply_shortage()
+        self.save()
+
     def finish_battle_if_needed(self):
         battle = self.game['battle']
         if not self.alive_party():
@@ -1448,7 +1818,7 @@ class Hiraeth:
             int(index) for index, plan in battle.get('plans', {}).items()
             if plan.get('kind') == 'guard'
         }
-        for enemy in battle['enemies']:
+        for enemy_index, enemy in enumerate(battle['enemies']):
             if enemy['health_now'] <= 0 or not self.alive_party():
                 continue
             if enemy.get('blinded') or enemy.get('calmed'):
@@ -1456,19 +1826,41 @@ class Hiraeth:
                 continue
             target = random.choice(self.alive_party())
             target_index = self.game['party'].index(target)
+            if target.get('rank', 'front') == 'back':
+                for front_index, front in enumerate(self.game['party']):
+                    if (
+                        front['health'] > 0
+                        and front.get('rank', 'front') == 'front'
+                        and enemy['health_now'] > 0
+                    ):
+                        self.resolve_attack(front_index, enemy_index, opportunity=True)
+                if enemy['health_now'] <= 0:
+                    self.game['log'].insert(0, f"{enemy['name']} is stopped by the front row's opportunity attacks.")
+                    continue
+            self.queue_combat_animation('foe', enemy_index, 'party', target_index)
             defense_bonus = max(modifier(target, 'STR'), modifier(target, 'AGI'))
             defense_rolls = [random.randint(1, 20)]
             encumbered = self.is_encumbered(target)
+            check_mode = ''
             if target_index in guarded and not encumbered:
                 defense_rolls.append(random.randint(1, 20))
                 defense_roll = max(defense_rolls) + defense_bonus
+                check_mode = ' (advantage: guard)'
             elif encumbered and target_index not in guarded:
                 defense_rolls.append(random.randint(1, 20))
                 defense_roll = min(defense_rolls) + defense_bonus
+                check_mode = ' (disadvantage: encumbered)'
             else:
                 defense_roll = defense_rolls[0] + defense_bonus
-            if defense_roll >= 10 + enemy['attack']:
-                self.game['log'].insert(0, f"{target['Name']} avoids {enemy['name']}'s attack.")
+            defense_target = 10 + enemy['attack']
+            defense_check = (
+                f"Defense: d20 {defense_rolls} + best STR/AGI mod {defense_bonus:+d} = "
+                f"{defense_roll}{check_mode} vs DC {defense_target}"
+            )
+            if defense_roll >= defense_target:
+                self.game['log'].insert(
+                    0, f"{target['Name']} avoids {enemy['name']}'s attack ({defense_check})."
+                )
                 continue
             damage = max(
                 self.combat['minimum_damage'],
@@ -1480,15 +1872,22 @@ class Hiraeth:
                 damage = max(self.combat['minimum_damage'], damage - 1)
             if target.get('armor_ap_now', 0) > 0:
                 target['armor_ap_now'] -= 1
-                self.game['log'].insert(0, f"{target['Name']}'s armor absorbs {enemy['name']}'s attack (1 AP broken).")
+                self.game['log'].insert(
+                    0,
+                    f"{target['Name']}'s armor absorbs {enemy['name']}'s attack "
+                    f"(1 AP broken; {defense_check}).",
+                )
                 continue
             temporary = min(target.get('temporary_health', 0), damage)
             target['temporary_health'] = target.get('temporary_health', 0) - temporary
             damage -= temporary
             target['health'] -= damage
-            self.game['log'].insert(0, self.texts['enemy_hit_log'].format(
-                monster=enemy['name'], character=target['Name'], damage=damage,
-            ))
+            self.game['log'].insert(
+                0,
+                self.texts['enemy_hit_log'].format(
+                    monster=enemy['name'], character=target['Name'], damage=damage,
+                ) + f" ({defense_check}; {enemy['attack']} attack - CON mitigation).",
+            )
         battle['guarding'] = []
         battle['shielded'] = []
         battle['elemental_shielded'] = []
@@ -1505,15 +1904,28 @@ class Hiraeth:
 
     @staticmethod
     def roll_dice(expression):
+        return Hiraeth.roll_dice_details(expression)[1]
+
+    @staticmethod
+    def roll_dice_details(expression):
         try:
             count_text, sides_text = expression.lower().split('d', 1)
             count = int(count_text) if count_text else 1
             sides = int(sides_text)
         except (AttributeError, ValueError):
-            return 1
-        return sum(random.randint(1, sides) for _ in range(max(1, count)))
+            return [1], 1
+        faces = [random.randint(1, sides) for _ in range(max(1, count))]
+        return faces, sum(faces)
 
-    def resolve_attack(self, actor_index, enemy_index):
+    @staticmethod
+    def format_dice(expression, faces):
+        return f"{expression} {faces} = {sum(faces)}"
+
+    @staticmethod
+    def format_modifier(name, value):
+        return f"{name} {value:+d}"
+
+    def resolve_attack(self, actor_index, enemy_index, opportunity=False):
         battle = self.game.get('battle')
         if not battle or not 0 <= enemy_index < len(battle['enemies']):
             return
@@ -1522,28 +1934,56 @@ class Hiraeth:
         if enemy['health_now'] <= 0:
             self.game['log'].insert(0, f"{enemy['name']} is no longer a valid target.")
             return
+        self.queue_combat_animation('party', actor_index, 'foe', enemy_index)
         weapon = self.item_by_id('weapons', actor.get('equipment', {}).get('weapon'))
-        attack_stat = weapon.get('attack_stat', 'STR') if weapon else 'STR'
-        roll = random.randint(1, 20)
-        if self.is_encumbered(actor):
-            roll = min(roll, random.randint(1, 20))
-        damage = self.roll_dice(weapon['damage']) if weapon else (
-            self.combat['attack_base_damage'] + random.randint(
-                self.combat['attack_damage_min'], self.combat['attack_damage_max'],
-            )
+        trained, attack_stat, master_training = self.weapon_training(actor, weapon)
+        attack_rolls = [random.randint(1, 20)]
+        encumbered = self.is_encumbered(actor)
+        if encumbered:
+            attack_rolls.append(random.randint(1, 20))
+        roll = min(attack_rolls)
+        damage_dice = weapon['damage'] if weapon else '1d4'
+        damage_faces, damage_total = self.roll_dice_details(damage_dice)
+        attribute_bonus = modifier(actor, attack_stat) if trained else 0
+        training_bonus = 2 if master_training else 0
+        attack_bonus = attribute_bonus + training_bonus
+        attack_total = roll + attack_bonus
+        hit = attack_total >= enemy['defense']
+        attack_modifiers = [
+            f"{attack_stat} modifier {attribute_bonus:+d}" if trained else 'untrained (+0)'
+        ]
+        if training_bonus:
+            attack_modifiers.append(f"Martial Training {training_bonus:+d}")
+        attack_check = (
+            f"Attack: d20 {attack_rolls}"
+            + (' (disadvantage: encumbered)' if encumbered else '')
+            + f" + {' + '.join(attack_modifiers)} = {attack_total} "
+            f"vs DEF {enemy['defense']} ({'hit' if hit else 'miss'})"
         )
-        if not weapon or attack_stat == 'STR':
-            damage += modifier(actor, 'STR')
-        damage = max(self.combat['minimum_damage'], damage)
-        if roll + modifier(actor, attack_stat) >= enemy['defense']:
-            enemy['health_now'] -= damage
-            self.game['log'].insert(0, self.texts['player_hit_log'].format(
-                character=actor['Name'], monster=enemy['name'], damage=damage,
-            ))
+        damage_bonus = modifier(actor, attack_stat) if trained else 0
+        if trained:
+            damage = max(0, damage_total + damage_bonus)
         else:
-            self.game['log'].insert(0, self.texts['player_miss_log'].format(
+            damage = damage_total
+        damage_check = (
+            f"Damage: {self.format_dice(damage_dice, damage_faces)}"
+            + (f" {self.format_modifier(attack_stat, damage_bonus)} = {damage}" if trained else '')
+        )
+        if hit:
+            enemy['health_now'] -= damage
+            message = self.texts['player_hit_log'].format(
+                character=actor['Name'], monster=enemy['name'], damage=damage,
+            ) + f" ({attack_check}; {damage_check})."
+            if opportunity:
+                message = f"{actor['Name']} makes an opportunity attack: {message}"
+            self.game['log'].insert(0, message)
+        else:
+            message = self.texts['player_miss_log'].format(
                 character=actor['Name'], monster=enemy['name'],
-            ))
+            ) + f" ({attack_check}; {damage_check}, damage not dealt)."
+            if opportunity:
+                message = f"{actor['Name']} misses with an opportunity attack: {message}"
+            self.game['log'].insert(0, message)
 
     def resolve_spell(self, spell_id, actor_index, target_index, in_combat):
         actor = self.game['party'][actor_index]
@@ -1564,49 +2004,85 @@ class Hiraeth:
             if target['health_now'] <= 0:
                 return False
 
+        if in_combat:
+            self.queue_combat_animation(
+                'party', actor_index,
+                'party' if spell['target'] == 'ally' else 'foe',
+                target_index,
+            )
         effect = spell_id
+        roll_notes = []
         if effect == 'heal_wounds':
-            restored = min(self.roll_dice('1d8'), target['max_health'] - target['health'])
+            faces, total = self.roll_dice_details('1d8')
+            restored = min(total, target['max_health'] - target['health'])
+            roll_notes.append(f"{self.format_dice('1d8', faces)}; restores {restored}")
             if restored <= 0:
+                self.game['log'].insert(
+                    0, f"{actor['Name']}'s {spell['name']} roll: {roll_notes[-1]} Health."
+                )
                 return False
             target['health'] += restored
             result = f"{actor['Name']} heals {target['Name']} for {restored} Health."
         elif effect == 'respite':
-            restored = min(self.roll_dice('1d8'), target['max_stamina'] - target['stamina_now'])
+            faces, total = self.roll_dice_details('1d8')
+            restored = min(total, target['max_stamina'] - target['stamina_now'])
+            roll_notes.append(f"{self.format_dice('1d8', faces)}; restores {restored}")
             if restored <= 0:
+                self.game['log'].insert(
+                    0, f"{actor['Name']}'s {spell['name']} roll: {roll_notes[-1]} Stamina."
+                )
                 return False
             target['stamina_now'] += restored
             result = f"{actor['Name']} restores {restored} Stamina to {target['Name']}."
         elif effect == 'fortify_health':
-            restored = self.roll_dice('1d6')
+            faces, restored = self.roll_dice_details('1d6')
+            roll_notes.append(self.format_dice('1d6', faces))
             target['temporary_health'] = target.get('temporary_health', 0) + restored
             result = f"{target['Name']} gains {restored} temporary Health."
         elif effect == 'absorb_health':
-            drained = min(target['health_now'], self.roll_dice('1d6'))
+            faces, total = self.roll_dice_details('1d6')
+            drained = min(target['health_now'], total)
+            roll_notes.append(f"{self.format_dice('1d6', faces)}; drains {drained}")
             if drained <= 0:
+                self.game['log'].insert(0, f"{spell['name']} roll: {roll_notes[-1]} Health.")
                 return False
             target['health_now'] -= drained
             restored = min(drained, actor['max_health'] - actor['health'])
             actor['health'] += restored
             result = f"{actor['Name']} drains {drained} Health from {target['name']}."
         elif effect in ('harm', 'flame', 'frost', 'lightning', 'repel_undead'):
-            attack_roll = random.randint(1, 20)
-            if self.is_encumbered(actor):
-                attack_roll = min(attack_roll, random.randint(1, 20))
-            if attack_roll + modifier(actor, 'WIL') < target['defense']:
-                result = f"{actor['Name']}'s {spell['name']} misses {target['name']}."
+            attack_rolls = [random.randint(1, 20)]
+            encumbered = self.is_encumbered(actor)
+            if encumbered:
+                attack_rolls.append(random.randint(1, 20))
+            attack_roll = min(attack_rolls)
+            will_bonus = modifier(actor, 'WIL')
+            attack_total = attack_roll + will_bonus
+            hit = attack_total >= target['defense']
+            attack_check = (
+                f"Spell attack: d20 {attack_rolls}"
+                + (' (disadvantage: encumbered)' if encumbered else '')
+                + f" + WIL modifier {will_bonus:+d} = {attack_total} "
+                f"vs DEF {target['defense']} ({'hit' if hit else 'miss'})"
+            )
+            roll_notes.append(attack_check)
+            if not hit:
+                result = f"{actor['Name']}'s {spell['name']} misses {target['name']} ({attack_check})."
             else:
                 dice = {
                     'harm': '2d4', 'flame': '2d4', 'frost': '1d6',
                     'lightning': '1d6', 'repel_undead': '1d8',
                 }[effect]
-                damage = self.roll_dice(dice)
+                damage_faces, damage = self.roll_dice_details(dice)
+                roll_notes.append(f"Damage: {self.format_dice(dice, damage_faces)}")
                 target['health_now'] -= damage
-                result = f"{spell['name']} deals {damage} damage to {target['name']}."
+                result = f"{spell['name']} deals {damage} damage to {target['name']} ({attack_check}; {roll_notes[-1]})."
         elif effect in ('exhaust', 'depress'):
             pool = 'stamina_now' if effect == 'exhaust' else 'magica_now'
             maximum = max(0, target.get(pool, target.get('attack', 1) * 2))
-            drained = min(maximum, self.roll_dice('2d4'))
+            faces, total = self.roll_dice_details('2d4')
+            drained = min(maximum, total)
+            roll_notes.append(f"{self.format_dice('2d4', faces)}; drains {drained}")
             target[pool] = maximum - drained
             result = f"{spell['name']} drains {drained} {pool.removesuffix('_now').title()} from {target['name']}."
         elif effect == 'blind':
@@ -1639,6 +2115,8 @@ class Hiraeth:
             return False
 
         actor['magica_now'] -= spell['cost']
+        if roll_notes and effect not in ('harm', 'flame', 'frost', 'lightning', 'repel_undead'):
+            result += f" ({'; '.join(roll_notes)})."
         self.game['log'].insert(0, result)
         return True
 
@@ -1688,6 +2166,12 @@ class Hiraeth:
                 self.resolve_attack(actor_index, plan['target'])
             elif plan['kind'] == 'spell':
                 self.resolve_spell(plan['spell_id'], actor_index, plan['target'], in_combat=True)
+            elif plan['kind'] == 'switch_rank':
+                member = self.game['party'][actor_index]
+                member['rank'] = 'back' if member.get('rank', 'front') == 'front' else 'front'
+                self.game['log'].insert(
+                    0, f"{member['Name']} moves to the {member['rank']} row."
+                )
             if self.game['mode'] != 'combat':
                 break
             self.finish_battle_if_needed()
@@ -1814,14 +2298,17 @@ class Hiraeth:
 
     def refresh_armor_points(self, member, fill_increase=False):
         equipment = member.get('equipment', {})
-        armor_points = sum(
+        armor_total = sum(
             (self.item_by_id('armor', equipment.get(slot)) or {}).get('ap', 0)
             for slot in ('armor', 'helmet', 'shield')
         )
         old_max = member.get('armor_ap_max', 0)
+        member['armor_ap_broken'] = min(member.get('armor_ap_broken', 0), armor_total)
+        armor_points = max(0, armor_total - member['armor_ap_broken'])
         member['armor_ap_now'] = min(member.get('armor_ap_now', old_max), armor_points)
         if fill_increase and armor_points > old_max:
             member['armor_ap_now'] += armor_points - old_max
+        member['armor_ap_total'] = armor_total
         member['armor_ap_max'] = armor_points
 
     def handle_action(self, action):
@@ -1956,7 +2443,47 @@ class Hiraeth:
             return
 
         game = self.game
-        if action == 'inventory':
+        if isinstance(action, tuple) and action[0] == 'log_scroll':
+            self.log_scroll = max(
+                0,
+                min(
+                    max(0, len(self.journal_lines()) - 5),
+                    self.log_scroll + action[1],
+                ),
+            )
+        elif isinstance(action, tuple) and action[0] == 'party_rank':
+            index = action[1]
+            if not 0 <= index < len(game['party']) or game['party'][index]['health'] <= 0:
+                return
+            member = game['party'][index]
+            if game['mode'] == 'combat':
+                battle = game.get('battle') or {}
+                if (
+                    battle.get('phase') == 'planning'
+                    and battle.get('planning_actor') == index
+                    and str(index) not in battle.get('plans', {})
+                    and not battle.get('targeting')
+                ):
+                    self.plan_move(index, 'switch_rank')
+            elif game['mode'] not in ('won', 'lost'):
+                member['rank'] = 'back' if member.get('rank', 'front') == 'front' else 'front'
+                self.message = f"{member['Name']} moves to the {member['rank']} row."
+                self.save()
+        elif isinstance(action, tuple) and action[0] == 'cycle_downtime':
+            index = action[1]
+            if not 0 <= index < len(game['party']) or game['party'][index]['health'] <= 0:
+                return
+            member = game['party'][index]
+            current = member.get('downtime_activity', 'health')
+            next_index = (DOWNTIME_ACTIVITIES.index(current) + 1) % len(DOWNTIME_ACTIVITIES)
+            member['downtime_activity'] = DOWNTIME_ACTIVITIES[next_index]
+            self.message = f"{member['Name']} will {DOWNTIME_LABELS[member['downtime_activity']].lower()} during downtime."
+            self.save()
+        elif action == 'forage' and game['mode'] == 'journey' and game['supply'] == 0:
+            self.forage_supplies()
+        elif isinstance(action, tuple) and action[0] == 'town_repair':
+            self.repair_armor_in_town(action[1])
+        elif action == 'inventory':
             if game.get('mode') == 'town':
                 self.message = 'Use Browse town equipment to shop here.'
                 return
@@ -2087,8 +2614,12 @@ class Hiraeth:
                 return
             game['wealth'] -= upkeep
             game['day'] += 1
+            activities = self.perform_downtime()
             self.message = f"Rested in town and paid {upkeep} Wealth upkeep."
-            game['log'].insert(0, self.message)
+            if activities:
+                self.log_activities(self.message, activities)
+            else:
+                game['log'].insert(0, self.message)
             self.save()
         elif action == 'depart' and game['mode'] in ('town', 'waystation'):
             current_type = game['location']['type']
@@ -2107,25 +2638,50 @@ class Hiraeth:
                 f"({destination['distance']} travel days).",
             )
             self.save()
-        elif action == 'travel' and game['mode'] == 'journey' and game.get('travel_remaining') and game['supply'] >= self.journey['supply_per_travel']:
-            game['supply'] -= self.journey['supply_per_travel']
+        elif action == 'travel' and game['mode'] == 'journey' and game.get('travel_remaining'):
+            supplied = game['supply'] >= max(1, self.journey['supply_per_travel'])
+            if game['supply'] >= self.journey['supply_per_travel']:
+                game['supply'] -= self.journey['supply_per_travel']
+            elif game['supply'] > 0:
+                game['supply'] = 0
             game['day'] += 1
             game['step'] += 1
             game['travel_remaining'] -= 1
-            if random.random() < self.journey['combat_chance']:
-                self.start_battle()
-                game['log'].insert(0, self.texts['battle_start_log'])
-            elif random.random() < self.journey['event_chance']:
-                events = self.config['events']
-                game['mode'] = 'event'
-                game['event'] = dict(random.choices(
-                    events,
-                    weights=[event['rarity'] for event in events],
-                    k=1,
-                )[0])
-                game['log'].insert(0, self.texts['dilemma_log'].format(title=game['event']['title']))
+            if not supplied:
+                self.apply_supply_shortage()
+            if game['mode'] == 'lost':
+                pass
             else:
-                self.continue_after_travel_turn()
+                combat_roll = random.random() * 100
+                combat_chance = self.journey['combat_chance'] * 100
+                combat_encounter = combat_roll < combat_chance
+                game['log'].insert(
+                    0,
+                    f"Encounter check: {combat_roll:.1f}% vs {combat_chance:g}% "
+                    f"({'combat' if combat_encounter else 'no combat'}).",
+                )
+                if combat_encounter:
+                    self.start_battle()
+                else:
+                    event_roll = random.random() * 100
+                    event_chance = self.journey['event_chance'] * 100
+                    event_encounter = event_roll < event_chance
+                    game['log'].insert(
+                        0,
+                        f"Event check: {event_roll:.1f}% vs {event_chance:g}% "
+                        f"({'event' if event_encounter else 'no event'}).",
+                    )
+                    if event_encounter:
+                        events = self.config['events']
+                        game['mode'] = 'event'
+                        game['event'] = dict(random.choices(
+                            events,
+                            weights=[event['rarity'] for event in events],
+                            k=1,
+                        )[0])
+                        game['log'].insert(0, self.texts['dilemma_log'].format(title=game['event']['title']))
+                    else:
+                        self.continue_after_travel_turn()
             self.save()
         elif isinstance(action, tuple) and action[0] == 'camp_recovery' and game['mode'] == 'journey':
             game['camp_recovery'] = action[1]
@@ -2133,26 +2689,11 @@ class Hiraeth:
         elif action == 'rest' and game['mode'] == 'journey' and game['supply'] >= self.journey['supply_per_camp']:
             game['supply'] -= self.journey['supply_per_camp']
             game['day'] += 1
-            recovered = 0
-            recovery = game.get('camp_recovery', 'health')
-            for member in game['party']:
-                if recovery == 'health':
-                    amount = min(self.journey['camp_heal_per_member'], member['max_health'] - member['health'])
-                    member['health'] += amount
-                elif recovery == 'magica':
-                    amount = min(self.roll_dice('2d4'), member['max_magica'] - member['magica_now'])
-                    member['magica_now'] += amount
-                else:
-                    amount = min(self.roll_dice('2d6'), member['max_stamina'] - member['stamina_now'])
-                    member['stamina_now'] += amount
-                recovered += amount
-                armor = member.get('equipment', {}).get('armor')
-                base_ap = (self.item_by_id('armor', armor) or {}).get('ap', 0)
-                broken = member.get('armor_ap_max', 0) - member.get('armor_ap_now', 0)
-                for _ in range(max(0, broken)):
-                    if random.randint(1, 6) > base_ap:
-                        member['armor_ap_now'] = min(member['armor_ap_max'], member.get('armor_ap_now', 0) + 1)
-            game['log'].insert(0, f"The party camps, spends {self.journey['supply_per_camp']} Supply, and recovers {recovered} {recovery.title()}.")
+            activities = self.perform_downtime()
+            self.log_activities(
+                f"The party camps, spends {self.journey['supply_per_camp']} Supply.",
+                activities or ['No one needs recovery'],
+            )
             self.save()
         elif isinstance(action, tuple) and action[0] == 'event_choice' and game['mode'] == 'event':
             choice = game['event']['choices'][action[1]]
@@ -2229,6 +2770,11 @@ class Hiraeth:
                     running = False
                 elif event.type == pygame.MOUSEWHEEL and self.game is None and self.view == 'creator' and self.dropdown == 'trait':
                     self.dropdown_offset = min(max(0, self.dropdown_offset - event.y), max(0, len(self.trait_catalog) - 7))
+                elif event.type == pygame.MOUSEWHEEL and self.game is not None and self.view == 'game' and pygame.mouse.get_pos()[1] >= 598:
+                    self.log_scroll = min(
+                        max(0, self.log_scroll + event.y),
+                        max(0, len(self.journal_lines()) - 5),
+                    )
                 elif event.type == pygame.MOUSEWHEEL and self.game is not None and self.game['mode'] == 'combat' and self.view == 'game':
                     enemies = self.game['battle'].get('enemies', [])
                     self.game['battle']['target_scroll'] = min(

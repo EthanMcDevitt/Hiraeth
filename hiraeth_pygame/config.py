@@ -61,12 +61,13 @@ def load_config(path=CONFIG_FILE):
     _integer(journey.get('stages'), 'journey.stages', 1)
     for key in (
         'starting_supply', 'starting_wealth', 'supply_per_travel',
-        'town_upkeep_wealth_per_turn', 'supply_per_wealth_base',
+        'starvation_per_day', 'town_upkeep_wealth_per_turn', 'supply_per_wealth_base',
         'supply_per_camp', 'camp_heal_per_member', 'victory_wealth',
     ):
         _integer(journey.get(key), f'journey.{key}', 0)
     _integer(journey.get('starting_reputation'), 'journey.starting_reputation')
     _integer(journey.get('victory_reputation'), 'journey.victory_reputation')
+    _number(journey.get('ambush_chance'), 'journey.ambush_chance', 0, 1)
     _number(journey.get('combat_chance'), 'journey.combat_chance', 0, 1)
     _number(journey.get('event_chance'), 'journey.event_chance', 0, 1)
 

@@ -5,6 +5,8 @@
     "starting_wealth": 20,
     "starting_reputation": 0,
     "supply_per_travel": 1,
+    "starvation_per_day": 10,
+    "ambush_chance": 0.2,
     "event_chance": 0.4,
     "town_upkeep_wealth_per_turn": 1,
     "supply_per_wealth_base": 2,
@@ -199,7 +201,7 @@
       "won": "A road made whole",
       "lost": "The road falls silent"
     },
-    "combat_intro": "Your party acts one character at a time. Choose a foe to attack, or guard to brace for the enemy turn.",
+    "combat_intro": "Each character gets one move: attack, guard, or switch rows. A sudden ambush gives enemies the first round; otherwise the party acts first. Melee attacks against the back row provoke the front row.",
     "journey_intro": "The trail winds toward a land people have nearly forgotten. Prepare supplies and wealth before pushing into the unknown.",
     "travel_button": "Travel onward",
     "camp_button": "Make camp",
