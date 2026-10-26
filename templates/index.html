@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Character Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="Character Workshop home">
+        <span class="wordmark-mark">HIRAETH</span>
+        <span>CHARACTER WORKSHOP</span>
+      </a>
+      <div class="local-status"><span></span> SAVED LOCALLY</div>
+    </header>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <section class="generator-section">
+          <div class="section-kicker">01 <span>NEW CHARACTER</span></div>
+          <h1>Forge a character.</h1>
+          <p class="section-intro">Roll a new build or shape every choice yourself.</p>
+
+          <div class="procedure-switch" role="tablist" aria-label="Character creation method">
+            <button class="procedure-tab active" type="button" role="tab" aria-selected="true" data-mode="random">Random</button>
+            <button class="procedure-tab" type="button" role="tab" aria-selected="false" data-mode="manual">Manual</button>
+          </div>
+
+          <form id="generator-form">
+            <label class="field-label" for="new-name">Character name <span>OPTIONAL</span></label>
+            <input id="new-name" name="name" type="text" maxlength="80">
+
+            <div class="field-pair">
+              <label>
+                <span class="field-label">Level</span>
+                <input name="level" type="number" min="1" max="100" value="1" required>
+              </label>
+              <label>
+                <span class="field-label">Race</span>
+                <select id="new-race" name="race"></select>
+              </label>
+              <label>
+                <span class="field-label">Sex</span>
+                <select name="sex">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Agender</option>
+                  <option>Gender fluid</option>
+                </select>
+              </label>
+            </div>
+
+            <fieldset class="starting-options">
+              <legend>Starting options</legend>
+              <label class="check-row"><input name="martial" type="checkbox"><span>Martial training</span></label>
+              <label class="check-row"><input name="sorcery" type="checkbox"><span>Sorcery</span></label>
+              <label class="check-row"><input name="teenager" type="checkbox"><span>Teenager drawback</span></label>
+            </fieldset>
+
+            <button class="button button-primary" type="submit">Generate character <span aria-hidden="true">+</span></button>
+            <p class="form-message" id="generator-message" role="status"></p>
+          </form>
+
+          <form id="manual-form" class="manual-form" hidden>
+            <label class="field-label" for="manual-name">Character name</label>
+            <input id="manual-name" name="name" type="text" maxlength="80" placeholder="Name your character">
+
+            <div class="field-pair">
+              <label>
+                <span class="field-label">Level</span>
+                <input id="manual-level" name="level" type="number" min="1" max="100" value="1" required>
+              </label>
+              <label>
+                <span class="field-label">Race</span>
+                <select id="manual-race" name="race"></select>
+              </label>
+              <label>
+                <span class="field-label">Sex</span>
+                <select name="sex">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Agender</option>
+                  <option>Gender fluid</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="manual-stats-heading"><span class="field-label">Attributes</span><span>6-20 EACH</span></div>
+            <div class="manual-stats">
+              <label><span>STR</span><input name="STR" type="number" min="6" max="20" value="10" required></label>
+              <label><span>AGI</span><input name="AGI" type="number" min="6" max="20" value="10" required></label>
+              <label><span>CON</span><input name="CON" type="number" min="6" max="20" value="10" required></label>
+              <label><span>CHA</span><input name="CHA" type="number" min="6" max="20" value="10" required></label>
+              <label><span>WIS</span><input name="WIS" type="number" min="6" max="20" value="10" required></label>
+              <label><span>WIL</span><input name="WIL" type="number" min="6" max="20" value="10" required></label>
+            </div>
+
+            <div class="manual-budget" aria-live="polite">
+              <span>CHARACTER VALUE</span>
+              <strong><span id="manual-value">60</span> <i>/</i> <span id="manual-limit">62</span></strong>
+              <span id="manual-budget-status">WITHIN LEVEL LIMIT</span>
+            </div>
+
+            <label class="field-label" for="manual-trait-picker">Choose a trait</label>
+            <select id="manual-trait-picker"></select>
+            <div class="manual-trait-cost" id="manual-trait-cost-control"></div>
+            <p id="manual-trait-effect" class="trait-effect-preview" hidden></p>
+            <button id="manual-add-trait" class="button manual-add-button" type="button">Add selected trait <span aria-hidden="true">+</span></button>
+            <div id="manual-selected-traits" class="manual-selected-traits"></div>
+
+            <button id="manual-submit" class="button button-primary" type="submit">Create manual character <span aria-hidden="true">+</span></button>
+            <p class="form-message" id="manual-message" role="status"></p>
+          </form>
+        </section>
+
+        <section class="roster-section">
+          <div class="roster-heading">
+            <div class="section-kicker">02 <span>YOUR ROSTER</span></div>
+            <span id="roster-count" class="roster-count">0</span>
+          </div>
+          <div id="roster-list" class="roster-list"></div>
+          <p id="roster-empty" class="roster-empty">Your saved characters will live here.</p>
+        </section>
+        <footer class="sidebar-footer">CHARACTER DATA STAYS ON THIS DEVICE</footer>
+      </aside>
+
+      <section id="sheet-area" class="sheet-area" aria-live="polite">
+        <div class="empty-sheet">
+          <div class="empty-mark">CW</div>
+          <p class="section-kicker">THE CHARACTER ARCHIVE</p>
+          <h2>A story starts<br>with a person.</h2>
+          <p>Generate someone new, or choose a character from your roster.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>

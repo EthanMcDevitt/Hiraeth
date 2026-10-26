@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Emberroad — A Fantasy Trail Game</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="The Emberroad home"><span>✦</span> HIRAETH <i>/</i> THE EMBERROAD</a>
+    <a class="creator-link" href="http://127.0.0.1:5000/">CHARACTER WORKSHOP ↗</a>
+  </header>
+  <main id="game" class="game-shell" aria-live="polite">
+    <p class="loading">Loading your character archive…</p>
+  </main>
+  <script src="{{ url_for('static', filename='game.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+{
+  "journey": {
+    "stages": 10,
+    "starting_supply": 12,
+    "starting_wealth": 20,
+    "starting_reputation": 0,
+    "supply_per_travel": 1,
+    "event_chance": 0.4,
+    "town_upkeep_wealth_per_turn": 1,
+    "supply_per_wealth_base": 2,
+    "supply_per_camp": 1,
+    "camp_heal_per_member": 5,
+    "combat_chance": 0.33,
+    "town_level": {
+      "min": 1,
+      "max": 5
+    },
+    "distance": {
+      "town_to_waystation": {
+        "min": 2,
+        "max": 5
+      },
+      "waystation_to_town": {
+        "min": 2,
+        "max": 5
+      }
+    },
+    "town_names": ["Briar Glen", "Cinderford", "Morrowmarket", "Hearthcross"],
+    "waystation_names": ["The Bent Nail", "Pilgrim's Rest", "Mothlight Post", "The Mile Stone"],
+    "monsters_per_battle": {
+      "min": 1,
+      "max": 4
+    },
+    "victory_wealth": 3,
+    "victory_reputation": 1
+  },
+  "combat": {
+    "attack_base_damage": 2,
+    "attack_damage_min": 1,
+    "attack_damage_max": 4,
+    "constitution_reduction_divisor": 2,
+    "guard_reduction_divisor": 2,
+    "minimum_damage": 2
+  },
+  "sandbox": {
+    "map": [
+      "###################",
+      "#....#.......#....#",
+      "#....#..~....#....#",
+      "#.......~.........#",
+      "###.#####.####.####",
+      "#.................#",
+      "#..^^^^...~~~.....#",
+      "#.................#",
+      "###################"
+    ],
+    "start": {
+      "x": 1,
+      "y": 1
+    },
+    "blocked_symbols": [
+      "#",
+      "~",
+      "^"
+    ],
+    "legend": [
+      "#  stone wall",
+      ".  open ground",
+      "~  bog",
+      "^  broken highland"
+    ],
+    "text": {
+      "title": "The open country",
+      "description": "Explore at your own pace. The map is an unfinished chart, not a promise.",
+      "coordinates": "Position: {x}, {y}",
+      "move_log": "You travel {direction} to ({x}, {y}).",
+      "blocked_log": "The way {direction} is impassable.",
+      "directions": {
+        "up": "north",
+        "down": "south",
+        "left": "west",
+        "right": "east"
+      }
+    }
+  },
+  "monsters": [
+    {
+      "name": "Mireling",
+      "description": "A mud-caked scavenger with a stone knife.",
+      "health": 11,
+      "attack": 3,
+      "defense": 9
+    },
+    {
+      "name": "Ash Wolf",
+      "description": "A lean wolf whose coat smolders at the edges.",
+      "health": 14,
+      "attack": 4,
+      "defense": 11
+    },
+    {
+      "name": "Hollow Knight",
+      "description": "An empty suit of armor, animated by spite.",
+      "health": 20,
+      "attack": 5,
+      "defense": 12
+    },
+    {
+      "name": "Bog Wisp",
+      "description": "A cold light that has learned to hate.",
+      "health": 12,
+      "attack": 4,
+      "defense": 10
+    },
+    {
+      "name": "Roadside Bandit",
+      "description": "A desperate robber looking for an easy mark.",
+      "health": 16,
+      "attack": 4,
+      "defense": 10
+    }
+  ],
+  "events": [
+    {
+      "title": "A stranded traveler",
+      "rarity": 3,
+      "description": "An injured traveler asks for help reaching the next village.",
+      "choices": [
+        {
+          "label": "Share supplies and escort them",
+          "supply": -2,
+          "reputation": 2,
+          "wealth": 1,
+          "result": "Your kindness is remembered."
+        },
+        {
+          "label": "Take their purse and leave",
+          "supply": 0,
+          "reputation": -2,
+          "wealth": 5,
+          "result": "You leave richer, and less welcome."
+        }
+      ]
+    },
+    {
+      "title": "The abandoned shrine",
+      "rarity": 1,
+      "description": "A neglected roadside shrine holds a few coins beneath its offering bowl.",
+      "choices": [
+        {
+          "label": "Repair the shrine and leave an offering",
+          "supply": -1,
+          "reputation": 2,
+          "wealth": -2,
+          "result": "A quiet blessing follows your party."
+        },
+        {
+          "label": "Strip the shrine of its offerings",
+          "supply": 0,
+          "reputation": -2,
+          "wealth": 4,
+          "result": "The coins are yours; the old stones feel colder."
+        }
+      ]
+    },
+    {
+      "title": "The merchant’s wagon",
+      "rarity": 2,
+      "description": "A merchant’s broken wagon blocks the road. Its owner offers a fair reward for help.",
+      "choices": [
+        {
+          "label": "Help repair the axle",
+          "supply": -1,
+          "reputation": 1,
+          "wealth": 3,
+          "result": "The grateful merchant pays you and shares the story."
+        },
+        {
+          "label": "Loot the unattended cargo",
+          "supply": 0,
+          "reputation": -2,
+          "wealth": 6,
+          "result": "You take what you can before anyone returns."
+        }
+      ]
+    }
+  ],
+  "text": {
+    "game_title": "Hiraeth",
+    "selection_kicker": "A journey through the wilds",
+    "selection_subtitle": "BUILD A PARTY OF UP TO FOUR CHARACTERS",
+    "selection_intro_title": "Hiraeth",
+    "selection_intro": "Travel a wounded land, face the creatures in its shadows, and decide what your party will become.",
+    "starting_resources": "Starting resources: {supply} supply · {wealth} wealth · {reputation} reputation",
+    "journey_titles": {
+      "combat": "A fight in the wilds",
+      "event": "A choice on the road",
+      "journey": "The road goes on",
+      "won": "A road made whole",
+      "lost": "The road falls silent"
+    },
+    "combat_intro": "Your party acts one character at a time. Choose a foe to attack, or guard to brace for the enemy turn.",
+    "journey_intro": "The trail winds toward a land people have nearly forgotten. Prepare supplies and wealth before pushing into the unknown.",
+    "travel_button": "Travel onward",
+    "camp_button": "Make camp",
+    "supply_shortage": "The party needs more supply to travel or make camp.",
+    "guard_button": "Guard and end turn",
+    "guard_subtitle": "REDUCE THE NEXT HIT",
+    "bestiary_heading": "TEST BESTIARY",
+    "journal_heading": "JOURNAL",
+    "win_title": "Your party reaches the far country.",
+    "win_summary": "The road remembers every kindness and every trespass.",
+    "loss_title": "Your journey ends before the horizon.",
+    "loss_summary": "The wilds have claimed the last strength of the party.",
+    "battle_start_log": "The party is ambushed by creatures on the road.",
+    "dilemma_log": "A dilemma awaits: {title}.",
+    "party_falls_log": "The party falls in battle.",
+    "victory_log": "The monsters are defeated. The party gains {wealth} wealth and {reputation} reputation.",
+    "camp_log": "The party camps, spends {supply} supply, and recovers {health} health.",
+    "guard_log": "{name} braces for the next enemy strike.",
+    "enemy_hit_log": "{monster} hits {character} for {damage} damage.",
+    "player_hit_log": "{character} hits {monster} for {damage} damage.",
+    "player_miss_log": "{character} misses {monster}.",
+    "event_result_log": "{result} (Reputation {reputation:+d}.)",
+    "journey_start_log": "{party} set out with {supply} supply."
+  }
+}

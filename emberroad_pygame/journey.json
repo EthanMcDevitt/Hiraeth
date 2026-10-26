@@ -1,0 +1,59 @@
+{
+  "character": {
+    "Race": "Alismana",
+    "Level": 3,
+    "Stats": {
+      "STR": 12,
+      "AGI": 11,
+      "CON": 9,
+      "CHA": 17,
+      "WIS": 12,
+      "WIL": 8
+    },
+    "Derived": {
+      "Health": 21,
+      "Stamina": 23,
+      "Magica": 25
+    },
+    "Traits": {
+      "Terminal Velocity": 2,
+      "Resistance": 2
+    },
+    "Meta": {
+      "Target": 6,
+      "Allocated Points": 6,
+      "Spread Offset": 0,
+      "Starting Spread": 67,
+      "Has Martial Training": false,
+      "Has Sorcery": false,
+      "Teenager": false,
+      "Character Value": 73,
+      "Character Value Limit": 73
+    },
+    "Id": "9098730e075044c995b686ad61986030",
+    "Name": "Soog"
+  },
+  "day": 7,
+  "leg": 6,
+  "food": 0,
+  "health": 12,
+  "max_health": 21,
+  "log": [
+    "Setback (7 +1): The detour leads through thorny scrub.",
+    "The party spends 3 rations and presses on.",
+    "Success (12 -1): You keep the party together and make it across.",
+    "The party spends 3 rations and presses on.",
+    "Success (15 +1): A show of strength sends the beast retreating into the woods.",
+    "The party spends 3 rations and presses on.",
+    "Setback (9 -1): The current knocks you down before you reach the far bank.",
+    "The party spends 3 rations and presses on.",
+    "Success (12 +0): You scramble over the stones without losing a step.",
+    "The party spends 3 rations and presses on.",
+    "Setback (3 +1): The crossing turns treacherous. You reach the far bank bruised.",
+    "The party spends 3 rations and presses on.",
+    "Soog sets out toward the western frontier with 18 rations."
+  ],
+  "pending": null,
+  "ended": true,
+  "won": true
+}

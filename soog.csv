@@ -1,0 +1,33 @@
+,Race,Level,Stats,Derived,Traits,Meta
+STR,Tuar,15,8.0,,,
+AGI,Tuar,15,12.0,,,
+CON,Tuar,15,10.0,,,
+CHA,Tuar,15,14.0,,,
+WIS,Tuar,15,13.0,,,
+WIL,Tuar,15,15.0,,,
+Health,Tuar,15,,25.0,,
+Stamina,Tuar,15,,22.0,,
+Magica,Tuar,15,,29.0,,
+Martial Training,Tuar,15,,,5.0,
+Sorcery,Tuar,15,,,5.0,
+Teenager,Tuar,15,,,-2.0,True
+Dependent,Tuar,15,,,-2.0,
+Friend of Man,Tuar,15,,,3.0,
+Love,Tuar,15,,,-2.0,
+Indecisive,Tuar,15,,,-1.0,
+Bardic Verse,Tuar,15,,,3.0,
+Evasive,Tuar,15,,,3.0,
+Attractive,Tuar,15,,,5.0,
+Grappler,Tuar,15,,,3.0,
+Secret,Tuar,15,,,-1.0,
+Disarm,Tuar,15,,,2.0,
+Tech Whisperer,Tuar,15,,,2.0,
+Animal Affinity,Tuar,15,,,3.0,
+Aptitude,Tuar,15,,,1.0,
+Scavenger's Eye,Tuar,15,,,1.0,
+Target,Tuar,15,,,,31
+Allocated Points,Tuar,15,,,,31
+Spread Offset,Tuar,15,,,,1
+Starting Spread,Tuar,15,,,,59
+Has Martial Training,Tuar,15,,,,True
+Has Sorcery,Tuar,15,,,,True

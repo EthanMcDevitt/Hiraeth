@@ -1,0 +1,194 @@
+Name,Type,Var,Min Cost,Cost,Exclusions,PlayerOnly,ChooseOneOf,Description
+Dream Cult,Alismana,,3,3,,,,"The Alismana have a powerful connection with the ethereal realm of dreams. Once per long rest, you may Dream-Weave another creature, allowing you to intercept and communicate with them through their dreams. If you wish to target a creature you did not see that day, you must possess one of their belongings."
+Pheromones,Alismana,,4,4,,,,"The Alismana exude pheromones that communicate emotions in ways other species can't consciously perceive. With a simple wisdom check, you can attempt to detect the dominant emotional state of a creature you can see (fear, anger, joy, attraction, sorrow). Far away targets and creatures with vastly different biology are more difficult to sense. You may spend stamina to project your own emotional state into the environment around you, granting you advantage on Cha. checks if your emotion aligns with your intent (comforting calm, inspiring courage, stoking fear, etc.)."
+Terminal Velocity,Alismana,,2,2,,,,You are light compared to the surface area of your body. Fall damage accrues at half the normal rate for you and never exceeds 5d6 bludgeoning damage.
+Winter Mantle,Alismana,,1,1,,,,"Born of the north, you carry the resilience of your homeland in your very body. Your dense, scaled wings and insulating fluff make you well adapted to frigid conditions. You gain resistance to cold damage and advantage on checks to endure the effects of freezing. Additionally, you do not suffer the ill effects of sleeping in cold conditions. You are, however, vulnerable to fire and heat."
+Adversary,Drawback,1,-1,-3,,,,"You have pissed someone off, and they've made it their job to make your character's life miserable.
+
+You should have a good reason why your character has earned the emnity of their adversary, and your GM is free to weave this enemy into the campaign as they see fit. The more powerful the adversary is, the higher the value of this drawback (1 to 3). GMs should determine whether the adversary in question is appropriate to the campaign. Alternatively, the player may take this drawback and leave it up to the GM to create an adversary for your character."
+Clown,Drawback,,-1,-1,,,,"The clown just can't take things seriously, always coming up with jokes and wisecracks at the most inappropriate moments. Perhaps you deflect insecurity with humor, or enjoy keeping others off-balance with your comments and jokes. Overall, you just don't know when to keep your mouth shut.
+
+Clowns are generally liked during situations when their humor is not out of place, but the can find themselves in trouble during tense and dangerous situations. Clowns also tend not to be taken seriously even when they should be."
+Dependent,Drawback,1,-2,-3,,,,Your character has a relative or someone close to them for whom they are responsible - the perfect target for villains to terrorize or hold hostage to get to your character. The cost of this drawback scales with how present and vulnerable your dependent is (-2 to -3).
+Emotional Problems,Drawback,,-1,-1,,,"Depression, Emotional Dependency, Fear of Commitment, Fear of Rejection, Lonely, Insecurity","Those with emotional problems act in unreasonable ways to certain situations. Emotional problems can be overcome through roleplay throughout the campaign. Pick from Depression, Emotional Dependency, Fear of Commitment, Fear of Rejection, Insecurity, or Lonely. Your character gains Stress when put in situations that exacerbate their issues."
+Guilty,Drawback,,-1,-1,,,,"You carry the burdens of past sins, failures, and regrets. Whether or not anyone else blames you for them, you still do, and it gnaws at your resolve. When faced with situations that remind you of your guilt, the GM can call on you to make a Wil. check. On a failure, you suffer disadvantage on mental checks until your character can be rallied. On a success you gain advantage on rolls that your character feels (misguided or otherwise) could allow them to atone for their guilt. You may take stress to negate the effects of a failure."
+Gullible,Drawback,,-1,-1,,,,"You have a hard time recognizing lies, half-truths, and manipulation. You want to see the best in others, or you're just too trusting. You suffer a -3 penalty to rolls to detect lies and sense ulterior motives. If an NPC makes a plausible claim and you fail a check to determine its truth, you act as though you believe it unless another player intervenes."
+Honorable,Drawback,1,-1,-3,,,,"Your character follows a code of behavior and does not break it lightly, if at all. The more restrictive and rigid the code is, the higher its value.
+
+-1 Point - Your character does not lie or betray friends or loved ones, or people they respect. Anybody else is fair game.
+
+-2 Points  - Your code of honor is more complex, and applies to everyone, friend or foe. Your character always does their best to keep to their word, and will not betray someone's trust after receiving it.
+
+-3 Points  - Your character lives by a strict set of rules that governs most of their interactions. In addition to the above restrictions, your character will not participate in acts of betrayal such as ambushes, striking a helpless or unsuspecting foe, or cheating in any way. They may only lie in cases of extreme need, and make checks to lie with a -2 to -6 penalty, determined by the GM."
+Humorless,Drawback,,-1,-1,,,,"You entirely lack the ability to laugh at life. Most people will find this aspect of your character bothersome, and it may attract the attention of clowns and practical jokers."
+Impaired Senses,Drawback,,-2,-2,,,"Vision, Hearing, Smell/Taste, Touch","Pick one of: Vision, Hearing, Smell/Taste, or Touch.
+For you, this sense is damaged, preventing you from perceiving things others might. All checks made with this sense suffer a -3 penalty."
+Indecisive,Drawback,,-1,-1,,,,"You hesitate, overthink, and second-guess yourself when choices need to be made. Whether from fear of consequences or lack of self confidence, you struggle to act decisively. When you are faced with a weighty choice, the GM may call on you to make a Cha. check (target number varies based on urgency). On a failure, you falter, losing your turn and handing over narrative control to another player (or the GM if appropriate). Additionally, you have disadvantage on initiative rolls. You may negate either of these penalties by taking stress instead."
+Love,Drawback,1,-2,-4,,,,"Your character's love life is the stuff songs are made of. A character with this drawback begins the campaign in a relationship or develops one shortly after the campaign begins. This love may or may not be reciprocated. Whenever your character must choose between their head and their heart, they must make a Willpower saving throw with a -5 penalty. The strength and tragedy of this love determines the value of this drawback (-2 to -4)."
+Mental Problems,Drawback,1,-1,-3,,,"Cruelty, Delusions, Obsession, Paranoia, Phobia, Recklessness, Zealotry, Austere, Severe, Deranged","Your character has a major malfunction. This could stem from any number of past traumas, and could cover anything from quirkiness to total insanity. Pick one from Cruelty, Delusions, Obsession, Paranoia, Phobia, Recklessness, Zealotry, Austere, Severe, Deranged. Your character gains Exhaustion from their issues. The cost of this drawback scales with the severity of the issue (-1 to -3)."
+Obligation,Drawback,1,-1,-3,,,,"Some lives are weighed down with duties. An obligation must be followed to various degrees increasing in value with the strictness of its dictates. Characters may have obligations to factions or characters, religions and oaths. Whatever they may be, if not followed, trouble may follow - the loss of benefits and rights, demotion, or the loss of relationships. The stricter and more pressing the obligation, the more this drawback costs (-1 to -3)."
+Physical Infirmity,Drawback,1,-1,-5,,,,"Your character has been a victim of one of life's hideous twists - crippled by accident, disease, or defect. They may have missing limbs, spinal damage, or another tragic impairment. The severity of the impairment dictates the cost of the drawback (-1 to -5). This drawback also reduces the number of injuries your character may sustain before dying from 3 to 2."
+Recurring Nightmares,Drawback,,-1,-1,,,,"Your character is plagued by terrifying dreams that relive some past traumatic experience. Every night, you check to see if your character is afflicted by nightmares (less than 10, no modifiers). If yes, your character recovers as though they slept for half as long as they actually did. Nightmares can be circumnavigated with medicine."
+Secret,Drawback,1,-1,-3,,,,"Your character harbors a secret about themselves. They might have a secret identity or a shady past. If this secret were unveiled, they may lose the trust of the party, or become the target of various factions. The severity of the secret determines the cost of the drawback (-1 to -3)."
+Superstition,Drawback,,-1,-1,,,,"You possess a belief about the world around you that may or may not be totally accurate. Regardless, this belief influences your character's behavior, and deviating too much from it gives your character Stress."
+Sympathetic,Drawback,,-1,-1,,,,"You have a deep well of sympathy and can't help but care about the suffering of others. This makes you more approachable, but also easier to manipulate and distract. When confronted with another creatures suffering, you must make a Wil. check to walk away without trying to help (difficulty modified by immediacy of the suffering). If you fail, you may instead take stress to succeed. You do not mistreat beings you perceive as innocent, pitiable, or desperate. NPCs are quicker to trust you, and you gain advantage on checks to calm or inspire suffering characters."
+Teenager,Drawback,,-2,-2,,,,"Life sucks when you're a teenager. Your feel like an adult, but nobody treats your like one. Proper adults are less likely to trust or be persuaded by a teenager."
+Unattractive,Drawback,1,-1,-5,Attractive,,,"You are one unfortunately unsightly person (in the eyes of most). Unattractive people suffer greater scrutiny from strangers in the form of a penalty to charisma checks equal to the size of the drawback (-1 to -5). However, this penalty becomes a bonus if you are trying to intimidate others."
+Adaptive Logic,Eld Machine,,4,4,,,,"Even wandering birds and brute beasts don't fall into the same traps twice. You have a special memory system that allows you to extrapolate efficiently. Whenever you fail a mental check, you may choose to retain the information of this failure (write down what happened). You gain advantage on all similar checks for as long as you retain that memory. You may only retain 3 failed checks at a time, and may replace them with new checks at will."
+Integrated Tools,Eld Machine,,3,3,,,,"Your body was built for a reason. You have (or have rediscovered) a tool hiding in your body that you may deploy as a free action. This tool cannot be disarmed, but can be damaged. Tools may include a lockpick, welding torch, blade, taser, stylus, etc. You make all checks with these tools with a +2 bonus."
+Limited Dictionary,Eld Machine,,-2,-2,,,,"You weren't built with direct communication in mind. As a result, you only have a limited grasp on the language you know. Create a dictionary of 80 or fewer words. You may only use these words to create sentences to speak to the party."
+Obsolete Protocol,Eld Machine,,-1,-1,,,,"Ancient directives have been known to occasionally override your autonomy. Choose a trigger and a resulting machine-like behavior. When this protocol is triggered, you must carry out your behavior or gain stress."
+Projection Field,Eld Machine,,4,4,,,,You have a field that you may project around your chassis at will to save yourself from harm. You gain 3 free AP that repair automatically when the party rests.
+Resonant Memory,Eld Machine,,2,2,,,,"Fragments of old data cling to you. When exploring ruins, you gain advantage on intuiting the purpose and layout of destroyed architecture, as well as sundered machines, devices, and other artifacts."
+Acute Senses,General,,2,2,,,"Vision, Hearing, Smell/Taste, Touch","Pick one of: Vision, Hearing, Smell/Taste, or Touch.
+For you, this sense is heightened, allowing you to perceive things others might not. All checks made with this sense receive a +3 bonus."
+Animal Affinity,General,1,1,3,,,,"Animals are magnetically drawn to you. You can't communicate with them magically or anything, but you are a master of body language and tone.
+
+1 Point - you gain an affinity for a single type of animal.
+
+2 Points - you gain an affinity for a family of animal types.
+
+3 Points - you gain an affinity for all animals."
+Animal Companion,General,,3,3,,,,"you have an animal companion. This animal may complete simple tasks as you instruct them. This animal is non-magical, and acts alongside you in conflicts."
+Aptitude,General,,1,1,,,,"Pick a skill, talent, or area of knowledge: you are a whiz at this! You gain a +3 on checks for this task."
+Artistic,General,,3,3,,,,"You are unusually talented and creative.
+
+Pick an art style of your choice; you makes all checks involving that art with a +5 bonus.
+
+You begin with a +1 to any two mental attribute scores (Wisdom, Willpower, Charisma)."
+Athletic,General,,3,3,,,,"You like physical activity just for the hell of it and spend a good portion of you free time working out and playing sports. You gain a +1 to any two physical attribute scores (Strength, Agility, Endurance), and make checks to perform athletic feats with a +3 bonus."
+Attractive,General,1,1,5,Unattractive,,,"It's an unfortunate truth that being traditionally attractive can be a significant asset in life. You are one such attractive person. Being attractive when dealing with someone of the right persuasion may help you divert suspicion or gain you favors that others might not receive. Additionally, you gain a bonus equal to the cost of this quality when persuading people (1 to 5)."
+Caravaneer,General,,1,1,,,,You have advantage on navigational checks in harsh environments.
+Cautious,General,,2,2,,,,Your cautious nature lowers the danger dice of the room you are in by one degree of magnitude (i.e. d6 to d8).
+Classical Education,General,,3,3,,,,You gain complete literacy in 2 common languages and 1 uncommon language.
+Common Sense,General,,1,1,,1,,"You have a good head on your shoulders. Once per session, you can seek advice from your GM about how to handle new situations."
+Contacts,General,1,1,5,,,,"You know the right people to help you and your friends over the next hill. A contact that only provides hints and gossip costs 1 point, while a contact the provides reliable information or minor assistance cots 2 points. An ally contact that will actually fight by your side can cost 3 to 5 points, depending on the strength of the contact.
+
+The GM determines whether or not the contact is available at a given time. Generally, the more time your character has to reach or receive word from their contact, the more available they will be."
+Cultural Knack,General,,2,2,,,,You are never out of place no matter where you are. You pick up foreign customs quickly and social difficulties associated with being in a foreign land are lowered for you.
+Danger Sense,General,,3,3,,,,Successful checks to investigate your surroundings give you a timely warning of potential sources of danger.
+Dark Emissary,General,,2,2,,,,You have a supernatural connection with evil things. You have +3 to all Charisma skill checks when communicating with evil creatures and characters.
+Delver,General,,2,2,,,,Your familiarity with strongholds and caves grants you a +3 to checks to find traps and hidden doors while in dungeons and caves.
+Desert Adaptation,General,,1,1,,,,You bear a resilience forged from centuries of living in hot and dry climates. Negative effects from weather and climate in non-freezing regions have no effect on you.
+Driver,General,,1,1,,,,"You have a knack for guiding land vehicles, such as carts, chariots, wagons. You gain a +3 bonus when guiding and navigating such vehicles."
+Empathetic,General,,2,2,,,,"You have a real talent for reading others. With a Wisdom check, you can tell how someone nearby is feeling. The better the roll, the more you can learn about their mental state and thoughts. Supernatural beings are often too complex or inhuman to read."
+Enchanting Aura,General,,3,3,,,,You have a bright aura that is attractive to paranormal entities. You are much more likely to be enchanted or aided by friendly spirits and supernatural creatures.
+Evasive,General,,3,3,,,,"You gain +2 to your Agility attribute score, in addition to a +3 bonus on Agility saving throws."
+Fast Reaction Time,General,,3,3,,,,Most people freeze when something bad is about to happen - not you! You gain a +3 to all physical saving throws and defense rolls against opponents and obstacles you can see.
+First Aid,General,,3,3,,,,You can stabilize a dying ally as an action without making a check. Non-machine allies gain an extra 1d6 health when resting.
+Green Thumb,General,,1,1,,,,"Not only do plants survive in your care, they thrive."
+Hard to Kill,General,1,1,5,,,,"You seem to survive everything. When you are making death saving throws, you add a bonus equal to the cost of this quality (1 to 5)."
+Hearty,General,,2,2,,,,Your stalwart constitution grants you advantage on saving throws against poison and disease.
+Huge,General,,4,4,,,,"You are an absolute unit. You gain a +3 bonus when trying to intimidate others, and have an extra 10 health, but suffer a -3 penalty to hide."
+Hunter,General,,2,2,,,,You have the eyes of a predator. You can see slight movements from incredible distances.
+Innocent,General,,2,2,,,,"You have an aura of childlike innocence about you. People may have the urge to protect you, and you are much less likely to be suspected of subterfuge or manipulation."
+Library,General,1,1,4,,,,"Sometimes it's not about who you know, but rather what tomes you have access to. Your character has a collection of books, the comprehensiveness and usefulness of which determines the cost of this quality. This library allows you and other characters to spend their downtime searching for magic and information relevent to their current quest."
+Light Footsteps,General,,2,2,,,,You gain a +3 bonus to all checks to try to move quietly and cover your tracks.
+Light Sleeper,General,,1,1,,,,You wake up quickly and with little trouble. You cannot be ambushed in your sleep and maintain a higher baseline awareness of your surroundings while resting.
+Loyalty,General,1,1,5,,,,"Your character is loyal to a person, group, or cause. When acting in defense or service of the target of your loyalty, you gain a bonus equal to the cost of this quality (1 to 5). The cost is modified by the specificity and depth of the loyalty. Acting against your loyalty causes Stress."
+Lucky,General,1,1,5,,1,,"Fortune plays a large role in your life, With good luck, you may choose once per session to add a bonus to any roll (determined after you have rolled). The bonus is equal to the cost of this quality (1 to 5)."
+Lucky Streak,General,,2,2,,1,,"Once per day, you may choose to re-roll one failed saving throw."
+Martial Training,General,1,1,5,,,,"You have some experience with weapons and fighting.
+
+1 Point  - You have experience with non-advanced melee weapons and may add your attribute modifier to attack rolls and damage rolls with those weapons. You may also use light armor.
+
+2 Points - You have experience with non-advanced ranged weapons and may add your attribute modifier to attack rolls and damage rolls with those weapons.
+
+3 Points - You have experience with advanced melee weapons and may add your attribute modifier to attack rolls and damage rolls with those weapons. You may also use medium armor.
+
+4 Points - You have experience with advanced ranged weapons and may add your attribute modifier to attack rolls and damage rolls with those weapons.
+
+5 Points - You gain an additional +2 bonus to attack rolls (not damage rolls), and may use heavy armor. You also gain access to the Martial Traits."
+Master Crafter,General,,3,3,,,,"You have a +5 bonus with checks to repair, enhance, or otherwise augment non-magical items."
+Mechanic,General,,2,2,,,,"When an Eld Machine or similar construct rests with you in the party, they regain half the Health, Magica, and Stamina you do."
+Medium,General,,2,2,,,,You gain the ability to see and interact with ghosts. Sometimes the departed will reach out to you for favors.
+Natural Linguist,General,,2,2,,,,"Languages just make sense to you. Whether written or spoken, you get a +3 on checks to interpret languages you aren't fluent in."
+Natural Toughness,General,,2,2,,,,Your character can take a hit without flinching. Your character has one free armor point that automatically repairs when resting.
+Nature's Blessing,General,,3,3,,,,"You feel more comfortable out in the wild. When resting outside of civilization, you recover as though you slept 1.5x as long (you rest for 8 hours as though you rested for 12)."
+Nerves of Steel,General,,3,3,,,,"Your character is almost impossible to scare. Whether too dumb or too tough is open to question, but they are perpetually unruffled in the face of danger. Your character cannot be frightened or stunned by magical or natural means, except against the strangest supernatural manifestations. Your character's confidence and composure also affects your allies, who gain a +3 on all checks and saving throws against fear."
+Nightsense,General,,3,3,,,,"You can see in near-total darkness, so penalties for being in a dark environment are reduced (or non-existent) for you."
+Photographic Memory,General,,2,2,,,,You have the uncanny ability to remember pretty much everything you have ever seen. You can memorize and synthesize a lot of information with little more than a quick glance.
+Psychic Visions,General,,1,1,,,,"You can see the future in visions and dreams. Most of the time, these visions are not very clear, and they cannot be activated on purpose. No rolls, needed, the GM may craft and inject visions about the coming challenges and tribulations to be interpreted by the characters."
+Refugee's Repose,General,,2,2,,,,"You consume half as many supplies as one would normally consume. When preparing food for companions, supplies go twice as far."
+Resistance,General,,2,2,,,,"Some people are just able to ignore and circumvent physical punishment. Choose one kind of condition or damage type to become resistant to. In the case of conditions, your character gains advantage on saving throws and checks against this condition. In the case of damage types, your character takes half as much damage from this damage type."
+Resources,General,1,1,5,,,,"You have access to a bag of resources your character has put together for adventuring. Conveniently, what you need for a given situation may be drawn out of this bag as an action. You may draw from this bag as many times as points this quality costs (1 to 5). Items drawn using this trait are of a common quality. These resources are replenished when leveling up."
+Scavenger's Eye,General,,1,1,,,,"You are naturally skilled at finding useful items in the debris of the ruins you visit. You gain +3 on checks to find resources, crafting materials, and hidden secrets in ruins and civilization."
+Scholarly,General,,3,3,,,,"You are one of the smart - perhaps even brilliant - types who is more comfortable with a book than with other people. Scholars gain +2 to their Wisdom score and gain a +3 bonus to checks that lean on specialist knowledge, such as medical checks, nature and survival, history and arcana, etc."
+Situational Awareness,General,,2,2,,,,"Your character almost always knows what's happening around them. Your character gains a +3 to all rolls to detect and discern any trouble, danger, or hidden objects/foes around them."
+Sorcery,General,1,1,5,,,,"You have a latent talent for magic.
+
+1 Point  - You gain the ability to resist magic using your Magica pool at a cost ratio of 3:1 (if the spell cost 3 Magica to cast against you, you may resist it by expending 9 Magica).
+
+2 Points - You gain the ability to sense magic around you by focusing. This is done with a willpower check and gives you a vague sense of the source and strength of the magic, but not specific qualities of it.
+
+3 Points - Your magical resistance improves in efficiency. You may now resist magic at a cost ratio of 2:1.
+
+4 Points - You gain the ability to discern the qualities of magic around you by focusing, in addition to the powers granted at the 2 point tier.
+
+5 Points - You gain the ability to cast spells of your own. You begin knowing a number of magical effects equal to your Willpower modifier. You also gain access to the Magical Traits."
+Survivalist,General,,3,3,,,,"You know how to thrive in the wilderness. In appropriate environments, you are able to forage enough food and water to sustain yourself each day, and can always find advantageous camp sites insofar as one exists."
+Tech Whisperer,General,,2,2,,,,"You have a natural affinity for machines and technology, allowing you to learn or modify them with ease. You can temporarily bring back broken machines and use unfamiliar devices with minimal instruction."
+Telepathy,General,,5,5,,,,"You can speak directly into the minds of others, and read their thoughts as a response. A telepath may simultaneously communicate with a number of creatures equal to their willpower modifier. It is challenging but not impossible to telepathically communicate with creatures you cannot see. If a telepath touches someone, they gain access to their subject's thoughts."
+Time Sense,General,,1,1,,,,"You know what time it is, all the time, even when you can't see the sky."
+Tireless,General,,3,3,,,,You may take one extra level of exhaustion. Your first level of exhaustion grants no penalty.
+Trader,General,,3,3,,,,"You could sell sand in a desert. When bartering with merchants, you may hold a number of dice equal to your charisma modifier when re-rolling (minimum 1)."
+Ancestral Possession,Magic,,5,5,Sorcery,,,"At will, you submit yourself to the spirit of one of your ancestors. Which ancestor is up to you, and the benefits of each should be decided by you and your GM. Your ancestor possesses you for one hour, giving you new knowledge and strength. This ability recharges 1d4 days after use."
+Clear Sighted,Magic,,3,3,Sorcery,,,"You gain a +3 bonus to see through illusions, be they magical or otherwise."
+Concentration,Magic,,2,2,Sorcery,,,You have intense concentration. Target challenge to maintain your concentration are halved for you.
+Elemental Affinity,Magic,,4,4,Sorcery,,"Cold, Fire, Lightning, Thunder, Poison","Pick one of the following damage types: cold, fire, lightning, thunder, poison. When you deal this damage type, your deal twice as much."
+Familiar,Magic,,3,3,Sorcery,,,"You gain a small magical creature that assists you in casting spells and rituals. You have a telepathic connection with this creature, which you can command to do your bidding. You can cast spells through this creature."
+Potions and Poisons,Magic,,4,4,Sorcery,,,"You have the ability to create potions and poisons that contain the effects of a spell you already know how to cast, provided you have ingredients, a bottle, and a flame to brew over. These potions may not contain spells exceeding 3 Magica to cast."
+School of Magic,Magic,,3,3,Sorcery,,"Destruction, Alteration, Restoration, Illusion, Mysticism, Conjuration","Pick one of the following schools of magic: Destruction, Alteration, Restoration, Illusion, Mysticism, Conjuration. When casting spells in these schools, you gain a +3 bonus to attack rolls, and your spell saving throw target is increased by 3 for opponents. In the case of beneficial spells for allies, you may copy the effect to one other person without having to recast the spell."
+Shape-shifting,Magic,,5,5,Sorcery,,,You possess the partial ability to shape-shift. You can transform your body to look like that of someone you have seen before for 1 hour. This ability recharges after 1d4 days.
+Signature Spell,Magic,,2,2,Sorcery,,,You gain a signature spell. Write this spell and its effects down with your GM. This spell now costs half as much Magica to cast.
+Spell Effect,Magic,,1,1,Sorcery,,,You learn a new spell effect.
+Spell Thief,Magic,,4,4,Sorcery,,,"Whenever you are struck with a spell effect that you do not already know, roll a Willpower check. The target for this check is equal to 10 + the Magica cost of the spell in question. On a success, you learn the spell's effects."
+Stone Form,Magic,,3,3,Sorcery,,,You gain resistance to all forms of non-magical damage for 1 hour. This ability recharges after 1d4 days.
+Wind Rider,Magic,,2,2,Sorcery,,,"You have the ability to use the wind to aid your movements. Once per day you may do one of the following: Double your run distance, double your jump distance, halve falling damage, or levitate for 6 seconds."
+Assassin,Martial,,3,3,Martial Training,,,Successful attacks against creatures that cannot see you are critical hits.
+Battle Bond,Martial,,3,3,Martial Training,,,"You may designate an ally as your Battle Bond. You gain advantage on attacks against creatures that have targeted your Battle Bond within the last round. Once per long rest, whenever your Battle Bond is hurt, you gain temporary HP equal to half of the damage inflicted on your Battle Bond. You may designate a different ally as your Battle Bond once per day."
+Berserker,Martial,,3,3,Martial Training,,,"When you take damage in combat, you can add half of that damage to your next successful attack. This effect does not stack. If you take damage from another attack, you may choose to apply the higher of the two to your next attack."
+Bleeding Strike,Martial,,2,2,Martial Training,,,"You know how to make an opponent bleed. While the strike is superficial, changing the weapon damage dice to a d4, a bleeding opponent will continue to take 1d4 damage per round for a number of rounds equal to your weapon's attacking Attribute. Bleeding foes also leave a trail. "
+Born to the Saddle,Martial,,1,1,Martial Training,,,You gain a +2 to all weapon and spell attack rolls made while on horseback or on similar mounts.
+Brawler,Martial,,2,2,Martial Training,,,"You gain advantage on attacks when using improvised objects from your environment as weapons, and deal an additional +2 damage with such objects."
+Brutality,Martial,,3,3,Martial Training,,,"Once per day, when you kill an opponent, every other hostile creature within sight must succeed on a Willpower saving throw or become frightened of you."
+Cleave,Martial,,3,3,Martial Training,,,"When you kill an opponent with an attack, you may apply the excess damage to another nearby foe."
+Defensive Stance,Martial,,2,2,Martial Training,,,"As an action, you may enter a defensive stance. While in this stance, you may not attack (except by Riposte). You and any ally close to you gets a +1 bonus to defense rolls."
+Deflection,Martial,,2,2,Martial Training,,,"As a reaction, you may use your weapon's attack modifier to defend against a ranged attack."
+Disarm,Martial,,2,2,Martial Training,,,"When you successfully hit an opponent, instead of dealing damage you may force them to drop whatever they are holding."
+Dual Wielding,Martial,,3,3,Martial Training,,,"You can now dual wield any two one-handed weapons, regardless of their properties."
+Extra Attack,Martial,,4,4,Martial Training,,,You may make a second attack on your turn without incurring a multi-attack penalty.
+Favored Weapon,Martial,,1,1,Martial Training,,,You learn the special ability of a weapon of your choice.
+Fitted Armor,Martial,,3,3,Martial Training,,,"When wearing heavy armor, you no longer suffer mobility restrictions."
+Formation Fighting,Martial,,3,3,Martial Training,,,You have become accustomed to fighting in groups. Your allies no longer count as being in the way of your ranged attacks.
+Grappler,Martial,,3,3,Martial Training,,,"You have an aptitude for wrestling and restraining your opponents, so much so that you can use your weapons to do so. You can grapple an opponent with a weapon as though it were a free hand."
+Gunslinger,Martial,,2,2,Martial Training,,,You can dual wield one-handed firearms without incurring accuracy penalties.
+Honing,Martial,,2,2,Martial Training,,,You have a tool kit to hone your weapons during downtime. Honed weapons gain a +1 bonus to attack and damage rolls for 1d4 days.
+Keen Reflexes,Martial,,4,4,Martial Training,,,You may take one additional reaction per round of combat.
+Parry,Martial,,2,2,Martial Training,,,As a reaction you may add your weapon attack modifier to your defense check when targeted with a melee attack from an opponent you can see.
+Precision,Martial,,3,3,Martial Training,,,You score critical hits on a 19 as well as a 20.
+Quick Draw,Martial,,3,3,Martial Training,,,"You can draw your weapon and attack all in the same motion. This can be used to initiate combat, giving you a surprise round against a single opponent."
+Relentless Assault,Martial,,3,3,Martial Training,,,Every successful attack against an opponent raises your attack bonus against them by +1.
+Ricochet,Martial,,3,3,Martial Training,,,"(Firearms only) You know how to get your bullets to bounce around on purpose, allowing you to shoot at opponents using angles."
+Riposte,Martial,,2,2,Martial Training,,,"If you succeed in a defense roll against an melee attack, you may use your reaction to make a free attack against your foe."
+Shield Breaker,Martial,,2,2,Martial Training,,,"You know how to demolish shields. When an opponent uses a shield armor point to resist one of your attacks, they still take half damage instead of no damage."
+Siege Engineer,Martial,,2,2,Martial Training,,,"You have an intuitive understanding of how to design and operate large siege weapons like catapults, ballistas, and cannons. When attacking structures instead of creatures, you deal double damage."
+Spotter,Martial,,1,1,Martial Training,,,"If you can see an enemy, all of your allies may act as though they see that enemy, too."
+Steady Aim,Martial,,2,2,Martial Training,,,"While using a ranged weapon, you may choose to steady your aim for an attack. This attack uses two actions instead of one, but is made with advantage."
+Sudden Strike,Martial,,2,2,Martial Training,,,"When you attempt to grapple a creature who is surprised or cannot see you, you automatically succeed."
+Suppressing Fire,Martial,,2,2,Martial Training,,,"Your foes are worried by your aim. When you miss an attack, enemies who saw the line of your attack must succeed a Willpower saving throw to cross that line."
+Unstoppable Charge,Martial,,3,3,Martial Training,,,"If you use at least half of your movement to make a melee attack, your opponent is knocked prone on a successful hit."
+Weapon Whisperer,Martial,,3,3,Martial Training,,,"You may attune to a favored weapon, magical or otherwise, increasing its damage dice by a degree of magnitude (1d6 -> 1d8, etc.)."
+Wide Swing,Martial,,3,3,Martial Training,,,"You can swing your weapon in an extra-wide arc without losing power. You can make attacks against up to 3 opponents, provided they are within range and close to one another. These attacks cost double the stamina."
+In Plain Sight,Shei,,3,3,,,,"If you stand completely still in plain sight, you often go unnoticed. If you are caught in plain sight, you may roll an Agility check with a +5 bonus to avoid detection."
+Mama Candle,Shei,,3,3,,,,"You have the ability to use the coveted Mama Candle. While the candle burns, you may astral project. These candles are precious and rare, but may be found in well-connected cities."
+Nimble,Shei,,2,2,,,,You can move through the space of creatures the same size or larger than you without opposition.
+Rune-touched,Shei,,4,4,,,,"As a mystical folk from a far away world, you gain a natural resilience against magic. You gain resistance to spells that deal elemental damage (cold, fire, thunder, lightning)."
+Bardic Verse,Tuar,,3,3,,,,"You have been steeped in the rhythms and cadences of your people's poetic traditions. To you, verse is not only poetry, but power, history, and truth. You are able to remember most passages and verses you've heard aloud in full. Once per rest, you may forego an hour of your rest to perform recitations, reducing the stress of the party (including yourself). You have advantage on trying to decipher ancient inscriptions, riddles, and coded language."
+Bovine Physiology,Tuar,,3,3,,,,You are still accustomed to the grass diet of your bovine relatives. You may eat grass and leafy plants to satisfy a day's worth of hunger.
+Friend of Man,Tuar,,3,3,,,,Your presence is especially reassuring to your human allies. All friendly humans within 10 feet of you gain advantage on saving throws against being charmed or frightened.
+Gore,Tuar,,2,2,,,,"Once per day, you may use your horns to gore an opponent. Make an attack roll plus your Agility and Strength modifiers. On a hit, you deal 2d8 plus your strength modifier in piercing damage. Your attack roll is made with advantage if your opponent has hurt you within the last round."
+Bone Caster,Volk,1,1,3,,,,"You may cast bones in order to ask for prophetic guidance in the current situation. Roll a number of d6 equal to the cost of this quality (1 to 3). For each result of 4 or higher rolled, you receive one cryptic piece of insight. This may be done once per session."
+Claws,Volk,,2,2,,,,"You have the claws befitting a predator. When you make an unarmed attack, you have a +2 bonus to hit. On a successful hit, you deal an additional 1d4 damage."
+Feral Fury,Volk,,4,4,,,,"Once per day, you may enter a state of animalistic fury at will. While in combat, you may make an additional attack each round without any penalty. You exit this state if you are knocked unconscious."
+Monster Killer,Volk,,2,2,,,,You gain +3 to checks while tracking animals and monsters. You gain +2 to hit beasts in combat.

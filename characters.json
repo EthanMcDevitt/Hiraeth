@@ -1,0 +1,170 @@
+[
+  {
+    "Race": "Volk",
+    "Level": 1,
+    "Stats": {
+      "STR": 10,
+      "AGI": 12,
+      "CON": 10,
+      "CHA": 8,
+      "WIS": 11,
+      "WIL": 12
+    },
+    "Derived": {
+      "Health": 22,
+      "Stamina": 22,
+      "Magica": 23
+    },
+    "Traits": {
+      "Martial Training": 2,
+      "Superstition": -1,
+      "Sympathetic": -1,
+      "Emotional Problems": -1
+    },
+    "Meta": {
+      "Target": 2,
+      "Allocated Points": 2,
+      "Spread Offset": 0,
+      "Starting Spread": 60,
+      "Has Martial Training": true,
+      "Has Sorcery": false,
+      "Teenager": false,
+      "Character Value": 62,
+      "Character Value Limit": 62,
+      "Customized": true
+    },
+    "Id": "2d457b110ee342ddaa9a1a17faeecd93",
+    "Name": "Uce",
+    "Sex": "Female",
+    "Ancestry Features": [
+      "Opposable Tail (manipulate objects without a free hand; advantage against being knocked prone or pushed, on balance and climbing checks; climb as quickly as you walk)"
+    ]
+  },
+  {
+    "Race": "Human",
+    "Level": 1,
+    "Stats": {
+      "STR": 10,
+      "AGI": 10,
+      "CON": 9,
+      "CHA": 14,
+      "WIS": 9,
+      "WIL": 10
+    },
+    "Derived": {
+      "Health": 19,
+      "Stamina": 20,
+      "Magica": 24
+    },
+    "Traits": {
+      "Clown": -1,
+      "Gullible": -1,
+      "Honorable": -1,
+      "Innocent": 2,
+      "Teenager": -2,
+      "Tireless": 3
+    },
+    "Meta": {
+      "Target": 4,
+      "Allocated Points": 2,
+      "Spread Offset": 0,
+      "Starting Spread": 60,
+      "Has Martial Training": false,
+      "Has Sorcery": false,
+      "Teenager": true,
+      "Character Value": 62,
+      "Character Value Limit": 64,
+      "Customized": true
+    },
+    "Id": "a690f616683041c3bbc83626473c028d",
+    "Name": "Amelie",
+    "Sex": "Female",
+    "Ancestry Features": [
+      "Ambitious (+2 character points)"
+    ]
+  },
+  {
+    "Race": "Shei",
+    "Level": 1,
+    "Stats": {
+      "STR": 10,
+      "AGI": 11,
+      "CON": 9,
+      "CHA": 10,
+      "WIS": 13,
+      "WIL": 11
+    },
+    "Derived": {
+      "Health": 20,
+      "Stamina": 21,
+      "Magica": 24,
+      "Max Spells": 1
+    },
+    "Traits": {
+      "Humorless": -1,
+      "Sorcery": 3,
+      "Emotional Problems": -1,
+      "Mental Problems": -2,
+      "Guilty": -1
+    },
+    "Meta": {
+      "Target": 2,
+      "Allocated Points": 2,
+      "Spread Offset": 0,
+      "Starting Spread": 60,
+      "Has Martial Training": false,
+      "Has Sorcery": true,
+      "Teenager": false,
+      "Character Value": 62,
+      "Character Value Limit": 62,
+      "Customized": true
+    },
+    "Id": "54de7801bad8430e893d30f8d0b6d4a2",
+    "Name": "Evadne",
+    "Sex": "Female",
+    "Max Spells": 1,
+    "Ancestry Features": [
+      "Magical Bloodline (+1 known-spell capacity; choose spells later)"
+    ]
+  },
+  {
+    "Race": "Human",
+    "Level": 1,
+    "Stats": {
+      "STR": 12,
+      "AGI": 9,
+      "CON": 15,
+      "CHA": 10,
+      "WIS": 9,
+      "WIL": 12
+    },
+    "Derived": {
+      "Health": 27,
+      "Stamina": 27,
+      "Magica": 22
+    },
+    "Traits": {
+      "Dependent": -3,
+      "Hard to Kill": 1,
+      "Honorable": -3
+    },
+    "Meta": {
+      "Target": 4,
+      "Allocated Points": 2,
+      "Spread Offset": 0,
+      "Starting Spread": 60,
+      "Has Martial Training": false,
+      "Has Sorcery": false,
+      "Teenager": false,
+      "Customized": true,
+      "Character Value": 62,
+      "Character Value Limit": 64
+    },
+    "Id": "e2f5b19551a74e4780cc68612c1c40d7",
+    "Name": "Jovan",
+    "Sex": "Male",
+    "Ancestry Features": [
+      "Ambitious (+2 character points)"
+    ]
+  }
+]
