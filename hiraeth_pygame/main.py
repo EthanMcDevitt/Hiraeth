@@ -19,6 +19,7 @@ CHARACTERS_FILE = ROOT.parent / 'characters.json'
 SAVE_FILE = ROOT / 'hiraeth.json'
 TRAITS_FILE = ROOT.parent / 'traits.json'
 WIDTH, HEIGHT = 1000, 720
+WINDOW_SIZE = (1280, 900)
 MAX_PARTY = 4
 DOWNTIME_ACTIVITIES = ('health', 'magica', 'stamina', 'repair')
 DOWNTIME_LABELS = {
@@ -109,8 +110,8 @@ def new_battle(config):
     for template in random.sample(templates, count):
         enemy = dict(template)
         enemy['health_now'] = enemy['health']
-        enemy['stamina_now'] = max(1, enemy['attack'] * 2)
-        enemy['magica_now'] = max(1, enemy['attack'] * 2)
+        enemy['stamina_now'] = max(1, enemy['damage'] * 2)
+        enemy['magica_now'] = max(1, enemy['damage'] * 2)
         enemies.append(enemy)
     return {
         'enemies': enemies,
@@ -131,7 +132,8 @@ class Hiraeth:
         self.rules = RULES
         pygame.init()
         pygame.display.set_caption(self.texts['game_title'])
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.display = pygame.display.set_mode(WINDOW_SIZE, pygame.RESIZABLE)
+        self.screen = pygame.Surface((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont('georgia', 20)
         self.body = pygame.font.SysFont('segoeui', 15)
@@ -147,7 +149,6 @@ class Hiraeth:
         self.overview = None
         self.inventory_category = 'weapons'
         self.inventory_owner = None
-        self.inventory_recipient = 0
         self.inventory_selected = None
         self.inventory_owned_index = None
         self.inventory_scroll = 0
@@ -162,6 +163,7 @@ class Hiraeth:
         self.attack_animations = []
         self.animation_next_at = 0
         self.log_scroll = 0
+        self.inventory_recipient = 0
         self.load_save()
 
     @staticmethod
@@ -210,6 +212,23 @@ class Hiraeth:
                 battle.setdefault('plans', {})
                 battle.setdefault('targeting', None)
                 battle.setdefault('planning_actor', battle.get('turn', 0))
+                for enemy in battle.get('enemies', []):
+                    template = next(
+                        (
+                            monster for monster in self.config['monsters']
+                            if monster['name'] == enemy.get('name')
+                        ),
+                        None,
+                    )
+                    legacy_attack = enemy.get('attack', 1)
+                    enemy.setdefault(
+                        'chance_to_hit',
+                        template['chance_to_hit'] if template else 60,
+                    )
+                    enemy.setdefault(
+                        'damage',
+                        template['damage'] if template else max(1, legacy_attack),
+                    )
             if min(saved['supply'], saved['wealth']) < 0:
                 raise ValueError('saved resources cannot be negative')
             saved.setdefault('party_inventory', [])
@@ -284,7 +303,9 @@ class Hiraeth:
             pygame.draw.rect(self.screen, border, rect, width=1, border_radius=radius)
 
     def button(self, rect, label, action, primary=False, enabled=True, subtitle=None):
-        hovered = rect.collidepoint(pygame.mouse.get_pos())
+        hovered = enabled and rect.collidepoint(self.mouse_position())
+        if hovered:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         color = GREEN if primary else (229, 235, 227)
         border = GREEN if primary else (190, 201, 190)
         if not enabled:
@@ -305,6 +326,7 @@ class Hiraeth:
             self.buttons.append((rect, action))
 
     def frame(self, kicker, subtitle=''):
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         self.screen.fill((17, 27, 27))
         pygame.draw.rect(self.screen, (20, 32, 31), (0, 0, WIDTH, 60))
         self.text(f"✦  {self.texts['game_title'].upper()}", 32, 21, GOLD, self.small)
@@ -316,9 +338,35 @@ class Hiraeth:
         if subtitle:
             self.text(subtitle, 58, 122, MUTED, self.tiny)
         if self.game is not None:
-            if self.view != 'inventory':
-                self.button(pygame.Rect(660, 14, 112, 32), 'Inventory', 'inventory')
+            self.button(
+                pygame.Rect(660, 14, 112, 32), 'Inventory', 'inventory',
+                primary=self.view == 'inventory',
+            )
             self.button(pygame.Rect(790, 14, 112, 32), 'Quit to menu', 'quit_prompt')
+
+    def logical_size(self):
+        display_width, display_height = self.display.get_size()
+        scale = min(display_width / WIDTH, display_height / HEIGHT)
+        width, height = round(WIDTH * scale), round(HEIGHT * scale)
+        return scale, pygame.Rect(
+            (display_width - width) // 2,
+            (display_height - height) // 2,
+            width,
+            height,
+        )
+
+    def mouse_position(self, position=None):
+        scale, viewport = self.logical_size()
+        x, y = pygame.mouse.get_pos() if position is None else position
+        if scale <= 0:
+            return -1, -1
+        return round((x - viewport.x) / scale), round((y - viewport.y) / scale)
+
+    def present(self):
+        _, viewport = self.logical_size()
+        self.display.fill((17, 27, 27))
+        scaled = pygame.transform.smoothscale(self.screen, viewport.size)
+        self.display.blit(scaled, viewport.topleft)
 
     def draw_quit_prompt(self):
         if not self.quit_prompt:
@@ -623,6 +671,15 @@ class Hiraeth:
             return self.game.setdefault('party_inventory', [])
         return self.game['party'][self.inventory_owner].setdefault('inventory', [])
 
+    def transfer_choices(self):
+        party = self.game['party']
+        if self.inventory_owner is None:
+            return list(range(len(party)))
+        return [None] + [
+            index for index in range(len(party))
+            if index != self.inventory_owner
+        ]
+
     def draw_inventory(self):
         self.frame('Inventory & rules', 'EQUIPMENT, ARMOR, WEAPONS, AND KNOWN SPELLS')
         self.text(f"Wealth available: {self.game['wealth']}", 58, 151, GREEN, self.body)
@@ -645,10 +702,17 @@ class Hiraeth:
         for row_index, item in enumerate(visible):
             rect = pygame.Rect(68, 279 + row_index * 43, 344, 37)
             selected = item['id'] == self.inventory_selected
-            self.box(rect, (246, 244, 232) if selected else PANEL, GOLD if selected else LINE)
+            hovered = rect.collidepoint(self.mouse_position())
+            self.box(
+                rect,
+                (246, 244, 232) if selected or hovered else PANEL,
+                GOLD if selected or hovered else LINE,
+            )
             self.text(item['name'], rect.x + 9, rect.y + 5, INK, self.small)
             cost_label = f"Cast {item['cost']} Magica" if self.inventory_category == 'spells' else f"Wealth {item.get('cost', 0)}"
             self.text(cost_label, rect.x + 9, rect.y + 22, MUTED, self.tiny)
+            if hovered:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.buttons.append((rect, ('inventory_select', item['id'])))
         self.text(f'{self.inventory_scroll + 1}–{min(len(items), self.inventory_scroll + 7)} of {len(items)}  ·  scroll to browse',
                   72, 586, MUTED, self.tiny)
@@ -665,68 +729,104 @@ class Hiraeth:
             )
 
         if self.inventory_owner is None:
-            owner_name = 'Party inventory'
             owned = self.game.setdefault('party_inventory', [])
-            self.text(owner_name, 462, 281, GREEN, self.small)
-            self.text(f'{len(owned)} shared items', 462, 300, MUTED, self.tiny)
-            if self.game['party']:
-                self.button(
-                    pygame.Rect(462, 316, 230, 27),
-                    f"Give items to {self.game['party'][self.inventory_recipient]['Name']}  ›",
-                    ('inventory_recipient', 1),
-                )
+            self.text('Party stash', 462, 281, GREEN, self.small)
+            self.text(f'{len(owned)} shared items', 462, 301, MUTED, self.tiny)
         else:
             member = self.game['party'][self.inventory_owner]
-            owner_name = member['Name']
             owned = member.setdefault('inventory', [])
             capacity = max(1, int(member.get('Stats', {}).get('STR', 10)))
             slots = self.inventory_slots(owned)
-            self.text(f'{owner_name}  ·  {slots}/{capacity} slots', 462, 281, GREEN, self.small)
-            equip = member.setdefault('equipment', {'weapon': None, 'armor': None, 'helmet': None, 'shield': None})
             self.text(
-                'Equipped: ' + (self.item_name('weapons', equip.get('weapon')) or 'Unarmed')
-                + '  /  ' + ' / '.join(
-                    self.item_name('armor', equip.get(key)) or '—'
-                    for key in ('armor', 'helmet', 'shield')
-                ),
-                462, 300, MUTED, self.tiny,
+                f"{member['Name']}  ·  carried {slots}/{capacity} slots",
+                462, 281, GREEN, self.small,
             )
+            equipment = member.setdefault(
+                'equipment',
+                {'weapon': None, 'armor': None, 'helmet': None, 'shield': None},
+            )
+            equipment_slots = (
+                ('weapon', '1 · WEAPON'),
+                ('armor', '2 · ARMOR'),
+                ('helmet', '3 · HELMET'),
+                ('shield', '4 · SHIELD'),
+            )
+            for slot_index, (slot, label) in enumerate(equipment_slots):
+                column, row = slot_index % 2, slot_index // 2
+                rect = pygame.Rect(462 + column * 215, 307 + row * 32, 207, 27)
+                self.box(rect, PANEL, LINE)
+                item_name = self.item_name(
+                    'weapons' if slot == 'weapon' else 'armor',
+                    equipment.get(slot),
+                ) or 'Empty'
+                self.text(f'{label}  ·  {item_name[:16]}', rect.x + 7, rect.y + 6, INK, self.tiny)
+
+        transfer_choices = self.transfer_choices()
+        target_index = None
+        target_label = 'Party stash'
+        if transfer_choices:
+            target_index = transfer_choices[self.inventory_recipient % len(transfer_choices)]
+            target_label = (
+                'Party stash' if target_index is None
+                else self.game['party'][target_index]['Name']
+            )
+            action_label = 'Send to' if self.inventory_owner is None else 'Move to'
+            self.button(
+                pygame.Rect(462, 376, 224, 27),
+                f'{action_label} {target_label[:12]}  ›',
+                ('inventory_recipient', 1),
+            )
+            if self.inventory_owner is not None:
+                self.text(
+                    f'{slots}/{capacity} carry slots used',
+                    700, 383, MUTED, self.tiny,
+                )
 
         if self.inventory_category == 'spells' and self.inventory_owner is not None:
             member = self.game['party'][self.inventory_owner]
-            known = member.setdefault('known_spells', [])
-            shown_owned = [self.item_by_id('spells', spell_id) for spell_id in known]
-            self.text('KNOWN SPELLS', 462, 343, MUTED, self.tiny)
-            known = [spell for spell in shown_owned if spell]
-            visible_known = known[self.inventory_owned_scroll:self.inventory_owned_scroll + 5]
-            for row_index, spell in enumerate(visible_known):
-                self.text(f"{spell['name']}  ·  {spell['school']}  ·  {spell['cost']} Magica",
-                          462, 366 + row_index * 26, INK, self.tiny)
-            if len(known) > 5:
-                self.text(f'{self.inventory_owned_scroll + 1}–{min(len(known), self.inventory_owned_scroll + 5)} of {len(known)}',
-                          780, 343, MUTED, self.tiny)
-            self.text(f"Spell capacity: {len(known)}/{member.get('max_spells', 0)}", 462, 486, GREEN, self.tiny)
+            known_ids = member.setdefault('known_spells', [])
+            known = [
+                spell for spell in (
+                    self.item_by_id('spells', spell_id) for spell_id in known_ids
+                ) if spell
+            ]
+            self.text(
+                f"KNOWN SPELLS  ·  {len(known)}/{member.get('max_spells', 0)}",
+                462, 410, MUTED, self.tiny,
+            )
+            visible_owned = known[self.inventory_owned_scroll:self.inventory_owned_scroll + 5]
+            for row_index, spell in enumerate(visible_owned):
+                rect = pygame.Rect(458, 424 + row_index * 22, 435, 20)
+                self.box(rect, PANEL, LINE)
+                self.text(
+                    f"{spell['name']}  ·  {spell['school']}  ·  {spell['cost']} Magica",
+                    rect.x + 8, rect.y + 4, INK, self.tiny,
+                )
         else:
-            self.text('ITEMS IN THIS INVENTORY', 462, 343, MUTED, self.tiny)
-            visible_owned = owned[self.inventory_owned_scroll:self.inventory_owned_scroll + 6]
+            self.text('ITEMS IN THIS INVENTORY', 462, 410, MUTED, self.tiny)
+            visible_owned = owned[self.inventory_owned_scroll:self.inventory_owned_scroll + 5]
             for row_index, item_id in enumerate(visible_owned):
                 item = self.find_item(item_id)
                 label = item['name'] if item else item_id
                 if self.inventory_owner is not None:
-                    equip = self.game['party'][self.inventory_owner].get('equipment', {})
-                    equipped = item_id in equip.values()
+                    equipped = item_id in member.get('equipment', {}).values()
                     label += '  · equipped' if equipped else ''
-                rect = pygame.Rect(458, 362 + row_index * 29, 435, 25)
-                self.box(rect, (246, 244, 232) if self.inventory_owned_index == row_index + self.inventory_owned_scroll else PANEL, LINE)
-                self.text(label, rect.x + 8, rect.y + 5, INK, self.tiny)
+                rect = pygame.Rect(458, 424 + row_index * 22, 435, 20)
+                hovered = rect.collidepoint(self.mouse_position())
+                selected_owned = self.inventory_owned_index == row_index + self.inventory_owned_scroll
+                self.box(
+                    rect,
+                    (246, 244, 232) if selected_owned or hovered else PANEL,
+                    GOLD if selected_owned or hovered else LINE,
+                )
+                self.text(label, rect.x + 8, rect.y + 4, INK, self.tiny)
+                if hovered:
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 self.buttons.append((rect, ('inventory_owned', row_index + self.inventory_owned_scroll)))
-            if len(owned) > 6:
-                self.text(f'{self.inventory_owned_scroll + 1}–{min(len(owned), self.inventory_owned_scroll + 6)} of {len(owned)}',
-                          462, 541, MUTED, self.tiny)
 
         selected = next((item for item in items if item['id'] == self.inventory_selected), None)
         if selected:
-            detail_y = 512
+            detail_y = 535
             self.text(selected['name'], 462, detail_y, INK, self.body)
             if self.inventory_category == 'weapons':
                 detail = f"{selected['range']} range  ·  {selected['damage']} {selected['damage_type']}  ·  {selected['traits']}"
@@ -736,7 +836,7 @@ class Hiraeth:
                 detail = f"{selected['school']}  ·  {selected['cost']} Magica  ·  {selected['effect']}"
             else:
                 detail = f"{selected['slots']} slots  ·  {selected['traits']}"
-            self.wrapped(detail, pygame.Rect(462, detail_y + 23, 425, 43), MUTED, self.tiny, 1)
+            self.wrapped(detail, pygame.Rect(462, detail_y + 21, 425, 25), MUTED, self.tiny, 1)
 
         if self.inventory_category == 'spells':
             member = self.game['party'][self.inventory_owner] if self.inventory_owner is not None else None
@@ -779,8 +879,8 @@ class Hiraeth:
                     enabled=usable or equipped,
                 )
                 self.button(
-                    pygame.Rect(758, 584, 136, 32), 'Store with party',
-                    'inventory_transfer', enabled=can_move and not equipped,
+                    pygame.Rect(758, 584, 136, 32), f'Move to {target_label[:12]}',
+                    'inventory_transfer', enabled=can_move and not equipped and bool(transfer_choices),
                 )
         self.button(
             pygame.Rect(58, 646, 190, 40),
@@ -828,25 +928,83 @@ class Hiraeth:
 
     def draw_party(self):
         self.text('THE PARTY', 58, 147, MUTED, self.tiny)
+        self.text('W weapon · A armor · H helmet · S shield', 58, 160, MUTED, self.tiny)
         battle = self.game.get('battle') if self.game['mode'] == 'combat' else None
         targeting = battle.get('targeting') if battle else None
         for index, member in enumerate(self.game['party']):
-            rect = pygame.Rect(58, 169 + index * 90, 215, 78)
+            rect = pygame.Rect(58, 169 + index * 100, 215, 94)
             living = member['health'] > 0
             active = bool(battle and battle.get('planning_actor') == index and living)
-            self.box(rect, (246, 244, 232) if active else (226, 227, 215), GOLD if active else LINE)
-            self.text(member['Name'], rect.x + 12, rect.y + 9, INK if living else MUTED, self.body)
-            self.text(f"{member.get('Race', 'Traveler')}  ·  HP {max(0, member['health'])}/{member['max_health']}", rect.x + 12, rect.y + 32, GREEN if living else CORAL, self.tiny)
+            target_spell = (
+                self.item_by_id('spells', targeting.get('spell_id'))
+                if targeting and targeting.get('kind') == 'spell'
+                else None
+            )
+            target_available = not (
+                target_spell
+                and target_spell['id'] == 'heal_wounds'
+                and member['health'] >= member['max_health']
+            )
+            ally_target = bool(
+                targeting
+                and targeting.get('target_type') == 'ally'
+                and living
+                and target_available
+            )
+            clickable = ally_target or bool(
+                battle and not targeting
+                and battle.get('phase') == 'planning' and living
+            ) or not battle
+            hovered = clickable and rect.collidepoint(self.mouse_position())
+            self.box(
+                rect,
+                (246, 244, 232) if active or hovered else (226, 227, 215),
+                GOLD if active or hovered else LINE,
+            )
+            self.text(member['Name'], rect.x + 12, rect.y + 7, INK if living else MUTED, self.body)
+            self.text(
+                f"HP {max(0, member['health'])}/{member['max_health']}"
+                f"  ·  MP {member.get('magica_now', 0)}/{member.get('max_magica', 0)}",
+                rect.x + 12, rect.y + 27, GREEN if living else CORAL, self.tiny,
+            )
             if targeting and targeting.get('target_type') == 'ally' and living:
-                self.buttons.append((rect, ('combat_target_party', index)))
+                target_hint = (
+                    'Already at full Health'
+                    if not target_available
+                    else f"Click to target with {target_spell['name']}"
+                    if target_spell else 'Click to choose target'
+                )
+                self.text(target_hint[:30], rect.x + 12, rect.y + 44, GREEN, self.tiny)
+                if ally_target:
+                    self.buttons.append((rect, ('combat_target_party', index)))
             elif battle:
                 plan = battle.get('plans', {}).get(str(index))
                 status = 'Choose move' if plan is None else self.plan_description(plan, battle)
-                self.text(status, rect.x + 115, rect.y + 54, GOLD if plan else MUTED, self.tiny)
-                if living and battle.get('phase') == 'planning':
+                self.text(status[:30], rect.x + 12, rect.y + 44, GOLD if plan else MUTED, self.tiny)
+                if (
+                    living and battle.get('phase') == 'planning'
+                    and not targeting
+                ):
                     self.buttons.append((rect, ('plan_member', index)))
             else:
                 self.buttons.append((rect, ('overview', index)))
+            equipment = member.get('equipment', {})
+            slot_values = (
+                ('W', self.item_name('weapons', equipment.get('weapon'))),
+                ('A', self.item_name('armor', equipment.get('armor'))),
+                ('H', self.item_name('armor', equipment.get('helmet'))),
+                ('S', self.item_name('armor', equipment.get('shield'))),
+            )
+            for slot_index, (slot_label, item_name) in enumerate(slot_values):
+                slot_rect = pygame.Rect(rect.x + 8 + slot_index * 49, rect.y + 60, 46, 14)
+                self.box(slot_rect, WHITE, LINE, radius=2)
+                value = item_name[:4] if item_name else '—'
+                self.text(
+                    f'{slot_label}:{value}', slot_rect.x + 3, slot_rect.y + 2,
+                    INK, self.tiny,
+                )
+            if hovered:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             next_rank = 'back' if member.get('rank') == 'front' else 'front'
             rank_label = f"{member.get('rank', 'front').title()} → {next_rank.title()}"
             rank_enabled = living and (
@@ -859,13 +1017,13 @@ class Hiraeth:
                 )
             )
             self.button(
-                pygame.Rect(rect.x + 8, rect.y + 53, 99, 20),
+                pygame.Rect(rect.x + 8, rect.y + 76, 99, 16),
                 rank_label, ('party_rank', index),
                 enabled=rank_enabled,
             )
             activity = member.get('downtime_activity', 'health')
             self.button(
-                pygame.Rect(rect.x + 112, rect.y + 53, 95, 20),
+                pygame.Rect(rect.x + 112, rect.y + 76, 95, 16),
                 f"Rest: {DOWNTIME_LABELS[activity]} >",
                 ('cycle_downtime', index),
                 enabled=living and not battle and self.game['mode'] not in ('won', 'lost'),
@@ -941,15 +1099,41 @@ class Hiraeth:
         self.text('Choose a party member to target:', 58, 220, GREEN, self.small)
         for index, member in enumerate(self.game['party']):
             rect = pygame.Rect(58, 254 + index * 75, 590, 63)
-            enabled = member['health'] > 0 and actor['magica_now'] >= spell['cost'] and spell['target'] == 'ally'
-            self.box(rect, WHITE if enabled else PANEL, GOLD if enabled else LINE)
+            already_full = (
+                spell['id'] == 'heal_wounds'
+                and member['health'] >= member['max_health']
+            )
+            enabled = (
+                member['health'] > 0
+                and actor['magica_now'] >= spell['cost']
+                and spell['target'] == 'ally'
+                and not already_full
+            )
+            hovered = enabled and rect.collidepoint(self.mouse_position())
+            self.box(
+                rect,
+                (246, 244, 232) if hovered else WHITE if enabled else PANEL,
+                GOLD if hovered else GREEN if enabled else LINE,
+            )
             self.text(member['Name'], rect.x + 14, rect.y + 8, INK, self.body)
             self.text(
                 f"HP {member['health']}/{member['max_health']}  ·  Magica {member['magica_now']}/{member['max_magica']}",
                 rect.x + 14, rect.y + 35, MUTED, self.tiny,
             )
-            if enabled:
-                self.buttons.append((rect, ('cast_outside_target', index)))
+            if member['health'] > 0 and spell['target'] == 'ally':
+                hint = (
+                    'FULL HEALTH'
+                    if already_full else 'CLICK TO HEAL'
+                    if spell['id'] == 'heal_wounds' else 'CLICK TO TARGET'
+                )
+                self.text(
+                    hint, rect.right - 110, rect.y + 22,
+                    MUTED if already_full else GREEN if hovered else MUTED, self.tiny,
+                )
+                if enabled:
+                    if hovered:
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    self.buttons.append((rect, ('cast_outside_target', index)))
         if spell['target'] == 'foe':
             self.wrapped('Hostile-target spells can only be cast during combat.', pygame.Rect(58, 560, 590, 35), CORAL, self.small)
         self.button(pygame.Rect(58, 635, 190, 40), 'Back to inventory', 'spell_target_back', primary=True)
@@ -1030,7 +1214,12 @@ class Hiraeth:
             is_alive = enemy['health_now'] > 0
             self.box(rect, WHITE if is_alive else (220, 220, 210), CORAL if is_alive else LINE)
             self.text(enemy['name'][:20], rect.x + 8, rect.y + 4, INK if is_alive else MUTED, self.small)
-            self.text(f"HP {max(0, enemy['health_now'])}/{enemy['health']} · DEF {enemy['defense']}", rect.x + 8, rect.y + 22, CORAL, self.tiny)
+            self.text(
+                f"HP {max(0, enemy['health_now'])}/{enemy['health']}"
+                f" · DEF {enemy['defense']} · HIT {enemy['chance_to_hit']}%"
+                f" · DMG {enemy['damage']}",
+                rect.x + 8, rect.y + 22, CORAL, self.tiny,
+            )
             if is_alive and (battle.get('targeting') or {}).get('target_type') == 'foe':
                 self.buttons.append((rect, ('combat_target_foe', index)))
         if len(enemies) > 6:
@@ -1239,15 +1428,18 @@ class Hiraeth:
     def queue_combat_animation(self, source_type, source_index, target_type, target_index):
         now = pygame.time.get_ticks()
         start_at = max(now, self.animation_next_at)
-        self.animation_next_at = start_at + 320
-        self.attack_animations.append({
+        self.animation_next_at = start_at + 850
+        animation = {
             'source_type': source_type,
             'source_index': source_index,
             'target_type': target_type,
             'target_index': target_index,
             'start_at': start_at,
-            'end_at': start_at + 520,
-        })
+            'end_at': start_at + 1200,
+            'result': None,
+        }
+        self.attack_animations.append(animation)
+        return animation
 
     def draw_combat_animations(self):
         if self.game.get('mode') != 'combat':
@@ -1287,13 +1479,43 @@ class Hiraeth:
             duration = animation['end_at'] - animation['start_at']
             progress = min(1.0, (now - animation['start_at']) / duration)
             pygame.draw.line(self.screen, GOLD, source, target, 3)
+            impact = (
+                animation['result'] is not None
+                and progress >= 0.7
+            )
+            marker_progress = min(progress / 0.7, 1.0)
+            direction = (target[0] - source[0], target[1] - source[1])
+            perpendicular = (direction[1], -direction[0])
+            direction_length = max(
+                1,
+                (perpendicular[0] ** 2 + perpendicular[1] ** 2) ** 0.5,
+            )
+            miss_offset = (
+                72 * (marker_progress - 0.75)
+                if animation['result'] is False and marker_progress > 0.75
+                else 0
+            )
             marker = (
-                round(source[0] + (target[0] - source[0]) * progress),
-                round(source[1] + (target[1] - source[1]) * progress),
+                round(source[0] + direction[0] * marker_progress
+                      + perpendicular[0] / direction_length * miss_offset),
+                round(source[1] + direction[1] * marker_progress
+                      + perpendicular[1] / direction_length * miss_offset),
             )
             pygame.draw.circle(self.screen, CORAL, marker, 7)
-            if progress >= 0.72:
-                pygame.draw.circle(self.screen, GOLD, target, 14, width=2)
+            if impact:
+                result = animation['result']
+                result_color = CORAL if result is False else GREEN
+                pygame.draw.circle(self.screen, result_color, target, 17, width=3)
+                label = (
+                    'MISS' if result is False
+                    else 'CAST' if result == 'CAST'
+                    else 'HIT'
+                )
+                label_surface = self.small.render(label, True, WHITE)
+                label_rect = label_surface.get_rect(center=(target[0], target[1] - 25))
+                background = label_rect.inflate(12, 6)
+                pygame.draw.rect(self.screen, result_color, background, border_radius=4)
+                self.screen.blit(label_surface, label_rect)
         self.attack_animations = active
 
     def generate_destination(self, current_type):
@@ -1837,34 +2059,45 @@ class Hiraeth:
                 if enemy['health_now'] <= 0:
                     self.game['log'].insert(0, f"{enemy['name']} is stopped by the front row's opportunity attacks.")
                     continue
-            self.queue_combat_animation('foe', enemy_index, 'party', target_index)
+            animation = self.queue_combat_animation(
+                'foe', enemy_index, 'party', target_index,
+            )
             defense_bonus = max(modifier(target, 'STR'), modifier(target, 'AGI'))
-            defense_rolls = [random.randint(1, 20)]
+            defense_bonus_percent = defense_bonus * 5
+            defense_rolls = [random.randint(1, 100)]
             encumbered = self.is_encumbered(target)
             check_mode = ''
             if target_index in guarded and not encumbered:
-                defense_rolls.append(random.randint(1, 20))
-                defense_roll = max(defense_rolls) + defense_bonus
+                defense_rolls.append(random.randint(1, 100))
+                defense_roll = max(defense_rolls)
                 check_mode = ' (advantage: guard)'
             elif encumbered and target_index not in guarded:
-                defense_rolls.append(random.randint(1, 20))
-                defense_roll = min(defense_rolls) + defense_bonus
+                defense_rolls.append(random.randint(1, 100))
+                defense_roll = min(defense_rolls)
                 check_mode = ' (disadvantage: encumbered)'
             else:
-                defense_roll = defense_rolls[0] + defense_bonus
-            defense_target = 10 + enemy['attack']
-            defense_check = (
-                f"Defense: d20 {defense_rolls} + best STR/AGI mod {defense_bonus:+d} = "
-                f"{defense_roll}{check_mode} vs DC {defense_target}"
+                defense_roll = defense_rolls[0]
+            hit_chance = enemy['chance_to_hit']
+            effective_hit_chance = max(
+                0,
+                min(100, hit_chance - defense_bonus_percent),
             )
-            if defense_roll >= defense_target:
+            defense_check = (
+                f"Defense: d100 {defense_rolls}{check_mode} vs hit chance "
+                f"{hit_chance}% - best STR/AGI "
+                f"({defense_bonus:+d} × 5 = {defense_bonus_percent:+d}%) "
+                f"= {effective_hit_chance}% "
+                f"({'hit' if defense_roll <= effective_hit_chance else 'avoided'})"
+            )
+            animation['result'] = defense_roll <= effective_hit_chance
+            if not animation['result']:
                 self.game['log'].insert(
                     0, f"{target['Name']} avoids {enemy['name']}'s attack ({defense_check})."
                 )
                 continue
             damage = max(
                 self.combat['minimum_damage'],
-                enemy['attack'] - max(0, modifier(target, 'CON') // self.combat['constitution_reduction_divisor']),
+                enemy['damage'] - max(0, modifier(target, 'CON') // self.combat['constitution_reduction_divisor']),
             )
             if target_index in guarded:
                 damage = max(self.combat['minimum_damage'], damage // self.combat['guard_reduction_divisor'])
@@ -1886,7 +2119,7 @@ class Hiraeth:
                 0,
                 self.texts['enemy_hit_log'].format(
                     monster=enemy['name'], character=target['Name'], damage=damage,
-                ) + f" ({defense_check}; {enemy['attack']} attack - CON mitigation).",
+                ) + f" ({defense_check}; {enemy['damage']} base damage - CON mitigation).",
             )
         battle['guarding'] = []
         battle['shielded'] = []
@@ -1934,7 +2167,9 @@ class Hiraeth:
         if enemy['health_now'] <= 0:
             self.game['log'].insert(0, f"{enemy['name']} is no longer a valid target.")
             return
-        self.queue_combat_animation('party', actor_index, 'foe', enemy_index)
+        animation = self.queue_combat_animation(
+            'party', actor_index, 'foe', enemy_index,
+        )
         weapon = self.item_by_id('weapons', actor.get('equipment', {}).get('weapon'))
         trained, attack_stat, master_training = self.weapon_training(actor, weapon)
         attack_rolls = [random.randint(1, 20)]
@@ -1949,6 +2184,7 @@ class Hiraeth:
         attack_bonus = attribute_bonus + training_bonus
         attack_total = roll + attack_bonus
         hit = attack_total >= enemy['defense']
+        animation['result'] = hit
         attack_modifiers = [
             f"{attack_stat} modifier {attribute_bonus:+d}" if trained else 'untrained (+0)'
         ]
@@ -2004,8 +2240,9 @@ class Hiraeth:
             if target['health_now'] <= 0:
                 return False
 
+        animation = None
         if in_combat:
-            self.queue_combat_animation(
+            animation = self.queue_combat_animation(
                 'party', actor_index,
                 'party' if spell['target'] == 'ally' else 'foe',
                 target_index,
@@ -2059,6 +2296,8 @@ class Hiraeth:
             will_bonus = modifier(actor, 'WIL')
             attack_total = attack_roll + will_bonus
             hit = attack_total >= target['defense']
+            if animation:
+                animation['result'] = hit
             attack_check = (
                 f"Spell attack: d20 {attack_rolls}"
                 + (' (disadvantage: encumbered)' if encumbered else '')
@@ -2115,6 +2354,8 @@ class Hiraeth:
             return False
 
         actor['magica_now'] -= spell['cost']
+        if animation and animation['result'] is None:
+            animation['result'] = 'CAST'
         if roll_notes and effect not in ('harm', 'flame', 'frost', 'lightning', 'repel_undead'):
             result += f" ({'; '.join(roll_notes)})."
         self.game['log'].insert(0, result)
@@ -2244,17 +2485,24 @@ class Hiraeth:
         item = self.find_item(item_id)
         if not item:
             return
-        if self.inventory_owner is None:
-            recipient = self.game['party'][self.inventory_recipient]
+        choices = self.transfer_choices()
+        if not choices:
+            return
+        recipient_index = choices[self.inventory_recipient % len(choices)]
+        if recipient_index is None:
+            if self.inventory_owner is None:
+                return
+            destination = self.game.setdefault('party_inventory', [])
+            destination.append(source.pop(index))
+            self.message = f"Moved {item['name']} to the party stash."
+        else:
+            recipient = self.game['party'][recipient_index]
             capacity = max(1, int(recipient.get('Stats', {}).get('STR', 10))) * 2
             if self.inventory_slots(recipient.setdefault('inventory', [])) + item.get('slots', 1) > capacity:
                 self.message = f"{recipient['Name']} cannot carry any more."
                 return
             recipient['inventory'].append(source.pop(index))
-            self.message = f"Gave {item['name']} to {recipient['Name']}."
-        else:
-            self.game.setdefault('party_inventory', []).append(source.pop(index))
-            self.message = f"Moved {item['name']} to the party inventory."
+            self.message = f"Moved {item['name']} to {recipient['Name']}."
         self.inventory_owned_index = None
         self.save()
 
@@ -2484,9 +2732,6 @@ class Hiraeth:
         elif isinstance(action, tuple) and action[0] == 'town_repair':
             self.repair_armor_in_town(action[1])
         elif action == 'inventory':
-            if game.get('mode') == 'town':
-                self.message = 'Use Browse town equipment to shop here.'
-                return
             self.view = 'inventory'
             self.overview = None
             self.inventory_owned_index = None
@@ -2512,8 +2757,11 @@ class Hiraeth:
             self.inventory_owned_index = action[1]
             self.inventory_selected = None
         elif isinstance(action, tuple) and action[0] == 'inventory_recipient':
-            if self.game['party']:
-                self.inventory_recipient = (self.inventory_recipient + action[1]) % len(self.game['party'])
+            choices = self.transfer_choices()
+            if choices:
+                self.inventory_recipient = (
+                    self.inventory_recipient + action[1]
+                ) % len(choices)
         elif action == 'inventory_buy':
             self.buy_inventory_item()
         elif action == 'inventory_learn':
@@ -2766,11 +3014,13 @@ class Hiraeth:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.VIDEORESIZE:
+                    self.display = pygame.display.set_mode(event.size, pygame.RESIZABLE)
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.type == pygame.MOUSEWHEEL and self.game is None and self.view == 'creator' and self.dropdown == 'trait':
                     self.dropdown_offset = min(max(0, self.dropdown_offset - event.y), max(0, len(self.trait_catalog) - 7))
-                elif event.type == pygame.MOUSEWHEEL and self.game is not None and self.view == 'game' and pygame.mouse.get_pos()[1] >= 598:
+                elif event.type == pygame.MOUSEWHEEL and self.game is not None and self.view == 'game' and self.mouse_position()[1] >= 598:
                     self.log_scroll = min(
                         max(0, self.log_scroll + event.y),
                         max(0, len(self.journal_lines()) - 5),
@@ -2782,13 +3032,13 @@ class Hiraeth:
                         max(0, len(enemies) - 6),
                     )
                 elif event.type == pygame.MOUSEWHEEL and self.game is not None and self.view == 'inventory':
-                    if pygame.mouse.get_pos()[0] >= 444:
+                    if self.mouse_position()[0] >= 444:
                         if self.inventory_category == 'spells' and self.inventory_owner is not None:
                             owned_count = len(self.game['party'][self.inventory_owner].get('known_spells', []))
                             self.inventory_owned_scroll = min(max(0, self.inventory_owned_scroll - event.y), max(0, owned_count - 5))
                         else:
                             owned_count = len(self.current_inventory())
-                            self.inventory_owned_scroll = min(max(0, self.inventory_owned_scroll - event.y), max(0, owned_count - 6))
+                            self.inventory_owned_scroll = min(max(0, self.inventory_owned_scroll - event.y), max(0, owned_count - 5))
                     else:
                         count = len(self.rules[self.inventory_category])
                         self.inventory_scroll = min(max(0, self.inventory_scroll - event.y), max(0, count - 7))
@@ -2813,8 +3063,9 @@ class Hiraeth:
                     if direction:
                         self.move_sandbox(direction)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_position = self.mouse_position(event.pos)
                     for rect, action in reversed(self.buttons):
-                        if rect.collidepoint(event.pos):
+                        if rect.collidepoint(mouse_position):
                             self.handle_action(action)
                             break
             if self.game is None and self.view == 'creator':
@@ -2823,6 +3074,7 @@ class Hiraeth:
                 self.draw_selection()
             else:
                 self.draw_game()
+            self.present()
             pygame.display.flip()
             self.clock.tick(60)
         pygame.quit()

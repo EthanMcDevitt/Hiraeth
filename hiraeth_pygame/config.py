@@ -138,8 +138,11 @@ def load_config(path=CONFIG_FILE):
             raise ConfigurationError(f'Monster names must be unique: {name}.')
         monster_names.add(name)
         _text(monster.get('description'), f'monsters[{index}].description')
-        for key in ('health', 'attack', 'defense'):
+        for key in ('health', 'damage', 'defense'):
             _integer(monster.get(key), f'monsters[{index}].{key}', 1)
+        _integer(monster.get('chance_to_hit'), f'monsters[{index}].chance_to_hit', 0)
+        if monster['chance_to_hit'] > 100:
+            raise ConfigurationError(f'monsters[{index}].chance_to_hit must be between 0 and 100.')
 
     if not isinstance(events, list) or not events:
         raise ConfigurationError('events must be a non-empty list.')

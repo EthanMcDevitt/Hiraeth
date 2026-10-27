@@ -90,35 +90,40 @@
       "name": "Mireling",
       "description": "A mud-caked scavenger with a stone knife.",
       "health": 11,
-      "attack": 3,
+      "chance_to_hit": 55,
+      "damage": 3,
       "defense": 9
     },
     {
       "name": "Ash Wolf",
       "description": "A lean wolf whose coat smolders at the edges.",
       "health": 14,
-      "attack": 4,
+      "chance_to_hit": 65,
+      "damage": 4,
       "defense": 11
     },
     {
       "name": "Hollow Knight",
       "description": "An empty suit of armor, animated by spite.",
       "health": 20,
-      "attack": 5,
+      "chance_to_hit": 50,
+      "damage": 5,
       "defense": 12
     },
     {
       "name": "Bog Wisp",
       "description": "A cold light that has learned to hate.",
       "health": 12,
-      "attack": 4,
+      "chance_to_hit": 60,
+      "damage": 4,
       "defense": 10
     },
     {
       "name": "Roadside Bandit",
       "description": "A desperate robber looking for an easy mark.",
       "health": 16,
-      "attack": 4,
+      "chance_to_hit": 60,
+      "damage": 4,
       "defense": 10
     }
   ],
@@ -201,7 +206,7 @@
       "won": "A road made whole",
       "lost": "The road falls silent"
     },
-    "combat_intro": "Each character gets one move: attack, guard, or switch rows. A sudden ambush gives enemies the first round; otherwise the party acts first. Melee attacks against the back row provoke the front row.",
+    "combat_intro": "Each character gets one move: attack, guard, or switch rows. Enemies have a fixed hit chance; characters roll d100 to defend, adjusted by Strength or Agility. A sudden ambush gives enemies the first round; otherwise the party acts first. Melee attacks against the back row provoke the front row.",
     "journey_intro": "The trail winds toward a land people have nearly forgotten. Prepare supplies and wealth before pushing into the unknown.",
     "travel_button": "Travel onward",
     "camp_button": "Make camp",
