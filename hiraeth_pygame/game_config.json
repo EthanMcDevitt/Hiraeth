@@ -1,13 +1,13 @@
 {
   "journey": {
-    "stages": 10,
-    "starting_supply": 12,
+    "stages": 16,
+    "starting_supply": 8,
     "starting_wealth": 20,
     "starting_reputation": 0,
     "supply_per_travel": 1,
     "starvation_per_day": 10,
     "ambush_chance": 0.2,
-    "event_chance": 0.4,
+    "event_chance": 0.5,
     "town_upkeep_wealth_per_turn": 1,
     "supply_per_wealth_base": 2,
     "supply_per_camp": 1,
