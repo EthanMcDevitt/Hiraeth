@@ -1,0 +1,41 @@
+{
+  "map": [
+    "###################",
+    "#....#.......#....#",
+    "#....#..~....#....#",
+    "#.......~.........#",
+    "###.#####.####.####",
+    "#.................#",
+    "#..^^^^...~~~.....#",
+    "#.................#",
+    "###################"
+  ],
+  "start": {
+    "x": 1,
+    "y": 1
+  },
+  "blocked_symbols": [
+    "#",
+    "~",
+    "^"
+  ],
+  "legend": [
+    "#  stone wall",
+    ".  open ground",
+    "~  bog",
+    "^  broken highland"
+  ],
+  "text": {
+    "title": "The open country",
+    "description": "Explore at your own pace. The map is an unfinished chart, not a promise.",
+    "coordinates": "Position: {x}, {y}",
+    "move_log": "You travel {direction} to ({x}, {y}).",
+    "blocked_log": "The way {direction} is impassable.",
+    "directions": {
+      "up": "north",
+      "down": "south",
+      "left": "west",
+      "right": "east"
+    }
+  }
+}

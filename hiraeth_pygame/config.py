@@ -4,7 +4,8 @@ from string import Formatter
 from pathlib import Path
 
 
-CONFIG_FILE = Path(__file__).with_name('game_config.json')
+CONFIG_DIR = Path(__file__).with_name('game_data')
+CONFIG_FILES = ('journey', 'combat', 'sandbox', 'monsters', 'events', 'text')
 SEX_OPTIONS = ('Male', 'Female', 'Agender', 'Gender fluid')
 
 
@@ -43,10 +44,17 @@ def _text(value, label):
     return value
 
 
-def load_config(path=CONFIG_FILE):
+def load_config(path=CONFIG_DIR):
+    path = Path(path)
     try:
-        with Path(path).open(encoding='utf-8') as file:
-            config = json.load(file)
+        if path.is_dir():
+            config = {}
+            for name in CONFIG_FILES:
+                with (path / f'{name}.json').open(encoding='utf-8') as file:
+                    config[name] = json.load(file)
+        else:
+            with path.open(encoding='utf-8') as file:
+                config = json.load(file)
     except (OSError, json.JSONDecodeError) as error:
         raise ConfigurationError(f'Could not load {path}: {error}') from error
 

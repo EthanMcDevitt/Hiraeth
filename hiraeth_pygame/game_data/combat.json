@@ -1,0 +1,8 @@
+{
+  "attack_base_damage": 2,
+  "attack_damage_min": 1,
+  "attack_damage_max": 4,
+  "constitution_reduction_divisor": 2,
+  "guard_reduction_divisor": 2,
+  "minimum_damage": 2
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Mireling",
+    "description": "A mud-caked scavenger with a stone knife.",
+    "health": 11,
+    "chance_to_hit": 55,
+    "damage": 3,
+    "defense": 9
+  },
+  {
+    "name": "Ash Wolf",
+    "description": "A lean wolf whose coat smolders at the edges.",
+    "health": 14,
+    "chance_to_hit": 65,
+    "damage": 4,
+    "defense": 11
+  },
+  {
+    "name": "Hollow Knight",
+    "description": "An empty suit of armor, animated by spite.",
+    "health": 20,
+    "chance_to_hit": 50,
+    "damage": 5,
+    "defense": 12
+  },
+  {
+    "name": "Bog Wisp",
+    "description": "A cold light that has learned to hate.",
+    "health": 12,
+    "chance_to_hit": 60,
+    "damage": 4,
+    "defense": 10
+  },
+  {
+    "name": "Roadside Bandit",
+    "description": "A desperate robber looking for an easy mark.",
+    "health": 16,
+    "chance_to_hit": 60,
+    "damage": 4,
+    "defense": 10
+  }
+]

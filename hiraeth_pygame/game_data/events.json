@@ -1,0 +1,65 @@
+[
+  {
+    "title": "A stranded traveler",
+    "rarity": 3,
+    "description": "An injured traveler asks for help reaching the next village.",
+    "choices": [
+      {
+        "label": "Share supplies and escort them",
+        "supply": -2,
+        "reputation": 2,
+        "wealth": 1,
+        "result": "Your kindness is remembered."
+      },
+      {
+        "label": "Take their purse and leave",
+        "supply": 0,
+        "reputation": -2,
+        "wealth": 5,
+        "result": "You leave richer, and less welcome."
+      }
+    ]
+  },
+  {
+    "title": "The abandoned shrine",
+    "rarity": 1,
+    "description": "A neglected roadside shrine holds a few coins beneath its offering bowl.",
+    "choices": [
+      {
+        "label": "Repair the shrine and leave an offering",
+        "supply": -1,
+        "reputation": 2,
+        "wealth": -2,
+        "result": "A quiet blessing follows your party."
+      },
+      {
+        "label": "Strip the shrine of its offerings",
+        "supply": 0,
+        "reputation": -2,
+        "wealth": 4,
+        "result": "The coins are yours; the old stones feel colder."
+      }
+    ]
+  },
+  {
+    "title": "The merchant’s wagon",
+    "rarity": 2,
+    "description": "A merchant’s broken wagon blocks the road. Its owner offers a fair reward for help.",
+    "choices": [
+      {
+        "label": "Help repair the axle",
+        "supply": -1,
+        "reputation": 1,
+        "wealth": 3,
+        "result": "The grateful merchant pays you and shares the story."
+      },
+      {
+        "label": "Loot the unattended cargo",
+        "supply": 0,
+        "reputation": -2,
+        "wealth": 6,
+        "result": "You take what you can before anyone returns."
+      }
+    ]
+  }
+]

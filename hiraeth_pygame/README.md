@@ -15,16 +15,16 @@ Choose **Begin the journey** for the staged adventure or **Sandbox adventure** t
 
 During a session, choose **Quit to menu** to save and return later, delete the saved session, or keep playing. A saved session appears on the opening menu as **Resume saved session**; it is not automatically resumed when the game launches.
 
-Game content and balance live in **`game_config.json`** next to `main.py`; edit it with any text editor—no Python changes are needed. You can change:
+Game content and balance live in the **`game_data`** folder; edit the JSON file for the area you want to change—no Python changes are needed:
 
-- `journey`: travel-day stage count, starting resources, wilderness and town upkeep, combat/event chances, settlement names and levels, and independently configurable minimum/maximum travel distances between towns and waystations.
-- `combat`: attack damage, constitution mitigation, guard mitigation, and minimum damage.
-- `sandbox`: map rows, start coordinates, blocked terrain, legend, and movement text.
-- `monsters`: add, remove, rename, or rebalance monsters using `name`, `description`, `health`, `chance_to_hit` (an integer percentage from 0 to 100), `damage` (base damage on a hit), and `defense` (the target number for party attacks).
-- `events`: add or rewrite events and their choices. Each choice has a `label`, `result`, and integer `supply`, `wealth`, and `reputation` changes. Events support one to four choices and require a positive integer `rarity` weight; higher weights make an event more likely when an event roll succeeds. `journey.event_chance` sets the per-travel-day event probability separately from `combat_chance`.
-- `text`: change the opening copy, journey and combat descriptions, button labels, endings, and journal messages. Keep the existing `{placeholders}` in formatted messages.
+- `journey.json`: travel-day stage count, starting resources, wilderness and town upkeep, combat/event chances, settlement names and levels, and independently configurable minimum/maximum travel distances between towns and waystations.
+- `combat.json`: attack damage, constitution mitigation, guard mitigation, and minimum damage.
+- `sandbox.json`: map rows, start coordinates, blocked terrain, legend, and movement text.
+- `monsters.json`: add, remove, rename, or rebalance monsters using `name`, `description`, `health`, `chance_to_hit` (an integer percentage from 0 to 100), `damage` (base damage on a hit), and `defense` (the target number for party attacks).
+- `events.json`: add or rewrite events and their choices. Each choice has a `label`, `result`, and integer `supply`, `wealth`, and `reputation` changes. Events support one to four choices and require a positive integer `rarity` weight; higher weights make an event more likely when an event roll succeeds. `journey.json`'s `event_chance` sets the per-travel-day event probability separately from `combat_chance`.
+- `text.json`: change the opening copy, journey and combat descriptions, button labels, endings, and journal messages. Keep the existing `{placeholders}` in formatted messages.
 
-The game checks the configuration at startup and reports invalid values or missing fields. `README.md` describes how to launch the game; `config.py` validates and loads the editable JSON, while `main.py` handles gameplay.
+The game checks the configuration at startup and reports invalid values or missing files/fields. `config.py` loads and validates the separate configuration files. Python code is grouped by responsibility: `main.py` runs the game and dispatches input, while `rendering.py`, `creator.py`, `inventory.py`, `journey.py`, `combat.py`, and `persistence.py` contain the corresponding UI and gameplay systems. `shared.py` holds common constants and helpers.
 
 ## Rules, equipment, and inventory
 

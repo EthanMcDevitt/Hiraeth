@@ -1,0 +1,47 @@
+{
+  "stages": 16,
+  "starting_supply": 8,
+  "starting_wealth": 20,
+  "starting_reputation": 0,
+  "supply_per_travel": 1,
+  "starvation_per_day": 10,
+  "ambush_chance": 0.2,
+  "event_chance": 0.5,
+  "town_upkeep_wealth_per_turn": 1,
+  "supply_per_wealth_base": 2,
+  "supply_per_camp": 1,
+  "camp_heal_per_member": 5,
+  "combat_chance": 0.33,
+  "town_level": {
+    "min": 1,
+    "max": 5
+  },
+  "distance": {
+    "town_to_waystation": {
+      "min": 2,
+      "max": 5
+    },
+    "waystation_to_town": {
+      "min": 2,
+      "max": 5
+    }
+  },
+  "town_names": [
+    "Briar Glen",
+    "Cinderford",
+    "Morrowmarket",
+    "Hearthcross"
+  ],
+  "waystation_names": [
+    "The Bent Nail",
+    "Pilgrim's Rest",
+    "Mothlight Post",
+    "The Mile Stone"
+  ],
+  "monsters_per_battle": {
+    "min": 1,
+    "max": 4
+  },
+  "victory_wealth": 3,
+  "victory_reputation": 1
+}
